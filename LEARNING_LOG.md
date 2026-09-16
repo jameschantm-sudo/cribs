@@ -49,3 +49,57 @@ st.write("Scaffold is running. Nothing computed yet — this is Stage 0.")
 If you ran `streamlit run app.py` on a totally fresh laptop that had Python but had never seen
 this project before, what two things would you need to do first, and why, before it would work?
 (Hint: think about what `.venv` and `requirements.txt` are each for.)
+
+---
+
+## Stage 1 — Index adjustment (2026-09-16)
+
+**What we built**
+- `data/rvd_avg_price_by_class_monthly.csv` — a real snapshot of the Rating and Valuation
+  Department's official average private-domestic price data, broken out by size class and
+  region, monthly from Jan 1999 to Jul 2026. Downloaded once and saved into the repo so our
+  results stay reproducible even after RVD updates the live file.
+- `index_adjust.py` — turns an old sold price into "what that flat would be worth if it sold
+  today," using the "Class B, New Territories" column (City One Shatin's flats mostly run
+  430–752 sq ft, which is RVD's Class B).
+
+**Correction from earlier**: I'd originally pointed you at a different RVD file (`1.5M.csv`)
+and called its column "Class B, New Territories" — that file actually bundles Classes A, B
+and C together into one column, it doesn't split them out. `1.2M.csv` (used here) does split
+them, so it's the more precise source. Worth knowing this happened — always worth checking
+a data file's actual columns rather than trusting a title.
+
+**The lines that actually matter**
+
+```python
+def adjust_price(price, sale_date, index_series, base_date=None):
+    if base_date is None:
+        base_date = index_series.index.max()
+    base_index = index_at(index_series, base_date)
+    sale_index = index_at(index_series, sale_date)
+    return price * base_index / sale_index
+```
+
+- This is the whole method from the project brief in one line: `price × base_index ÷
+  sale_index`. If the market went *up* between the sale and today, `base_index >
+  sale_index`, so the old price gets scaled *up* to match — and vice versa.
+- `base_date` defaults to the newest month in the file, so every adjusted price ends up in
+  "as if it sold this month" terms — directly comparable to a live asking price later.
+- We never look at the actual units ($/sqft? $/sqm?) of the RVD series — because we only
+  ever take a *ratio* between two dates, the units cancel out. Only the up/down movement
+  between two points in time matters.
+
+**What would break it**
+- A `sale_date` outside 1999-01–2026-07 (whatever the file currently covers) — raises a
+  clear error rather than silently returning a wrong number. Good: silent wrong numbers are
+  the dangerous kind.
+- Mixing up `sale_date` and `base_date` order — the formula isn't symmetric, so swapping
+  them would scale prices the wrong direction.
+- If RVD ever renames "Class B New Territories", `INDEX_COLUMN` in the script needs updating
+  to match — it's a hardcoded string, not something that auto-detects.
+
+**Checkpoint question**
+Two flats sell for the exact same price, one in 2019 and one in 2024. After running both
+through `adjust_price`, will their adjusted values be the same, higher, or lower than the
+raw price — and why might they end up *different from each other* even though the raw price
+was identical?
