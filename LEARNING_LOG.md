@@ -165,3 +165,55 @@ since it's literally derived from price).
 **Checkpoint question**
 Why does `collect_data.py` write the raw HTML for every page into `data/raw_28hse/` before
 parsing anything out of it? What would be harder to do later if we'd only kept the final CSV?
+
+---
+
+## Stage 3 — Cleaning and index adjustment (2026-09-16)
+
+**What we built**
+- `clean_and_adjust.py` — turns the raw 683-row scrape into a modeling-ready dataset:
+  applies Stage 1's index adjustment to every price, adds an `age_at_sale` feature from
+  each phase's real completion year, and runs a loose sanity filter.
+- `data/city_one_shatin_modeling_ready.csv` — **678 rows**, each with `floor`,
+  `saleable_area_sqft`, `age_at_sale`, `sale_date`, the original `price_hkd`, and the new
+  `adjusted_price_hkd` (what that sale is worth in July-2026 market terms — the RVD index's
+  latest published month, and the target Stage 4's regression will actually predict).
+
+**The lines that actually matter**
+
+```python
+PHASE_COMPLETION_YEAR = {1: 1981, 2: 1982, 3: 1983, 4: 1985, 5: 1985, 6: 1986, 7: 1988}
+df["age_at_sale"] = df["sale_year"] - df["phase"].map(PHASE_COMPLETION_YEAR)
+```
+- Real, sourced completion years (Wikipedia, cross-checked against 28hse's own block-to-
+  phase grouping - both agree). `age_at_sale` is how old the building already was on the
+  day of each specific sale, not today - a 2019 sale of a 1981 block is age 38, not 45.
+
+```python
+too_recent = pd.to_datetime(df["sale_date"]).dt.to_period("M").dt.to_timestamp() > latest_indexed_month
+df = df[~too_recent]
+```
+- 5 of the 683 sales happened in Aug/Sep 2026 - after RVD's latest published index month
+  (Jul 2026). There's no index value to adjust those against yet, so they're dropped rather
+  than adjusted using a guessed or "closest available" number. Same never-estimate rule as
+  everywhere else, just showing up in a new place.
+
+**Sanity check result, worth noting**: the plausibility filter (area 150-2000 sqft, price
+$500K-$50M, floor 1-70 - deliberately much wider than the real data's actual range) dropped
+**zero** rows. That's a good sign the scrape in Stage 2 was clean, not a sign the filter is
+useless - it's still there as a safety net for next time the script runs on fresh data.
+
+**What would break it**
+- If a future scrape includes a different estate or a City One Shatin block outside phases
+  1-7, `age_at_sale` would silently come out as `NaN` (missing) for those rows, since
+  `PHASE_COMPLETION_YEAR` only has entries for phases 1-7 - worth checking for NaNs before
+  trusting a future run's output.
+- `adjust_price` (from Stage 1) raises an error for any date outside the RVD file's range -
+  if that file isn't refreshed, more and more recent sales will start getting silently
+  dropped by the `too_recent` filter as time goes on.
+
+**Checkpoint question**
+Two identical-looking flats sell for the same raw price, but one is in Phase 1 (completed
+1981) and one is in Phase 7 (completed 1988). If they sold on the exact same day, will their
+`age_at_sale` values be the same? Why does that matter for what the Stage 4 regression is
+about to learn?
