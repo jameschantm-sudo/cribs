@@ -12,23 +12,11 @@ Three things happen here:
 
 import pandas as pd
 
+from estate_info import PHASE_COMPLETION_YEAR
 from index_adjust import load_index, adjust_price
 
 RAW_CSV = "data/city_one_shatin_transactions.csv"
 OUTPUT_CSV = "data/city_one_shatin_modeling_ready.csv"
-
-# Real construction-completion years per phase, from Wikipedia
-# (https://en.wikipedia.org/wiki/City_One) - cross-checked against 28hse's
-# own block-to-phase grouping, which lines up with these exactly.
-PHASE_COMPLETION_YEAR = {
-    1: 1981,
-    2: 1982,
-    3: 1983,
-    4: 1985,
-    5: 1985,
-    6: 1986,
-    7: 1988,
-}
 
 
 def clean_and_adjust():

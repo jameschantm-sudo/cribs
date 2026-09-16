@@ -290,3 +290,55 @@ around HK$450K (~8-9%) on a flat it hasn't seen.
 If someone showed you only the training-set R² (0.678) and the single-split test R² (0.839)
 and asked "how accurate is this model," what number would you give them, and why is neither
 of those two numbers alone the right answer?
+
+---
+
+## Stage 5 — The Streamlit app (2026-09-16)
+
+**What we built**
+- `estate_info.py` — a small shared module holding City One Shatin's phase-completion
+  years and block-to-phase mapping. Pulled this out of `clean_and_adjust.py` (Stage 3)
+  because the app also needs it (to compute a *new* listing's age from its block number),
+  and copy-pasting the same lookup table into two files is how they quietly drift apart
+  over time. `clean_and_adjust.py` now imports from here instead - re-ran it afterward to
+  confirm the refactor didn't change the output (still 678 rows, identical).
+- `app.py` — the real app now: enter a listing's area, floor, block, and asking price, and
+  it shows the model's fair-value estimate plus the premium, in both HK$ and %.
+
+**The lines that actually matter**
+
+```python
+age = date.today().year - completion_year(block)
+X = [[area, floor, age]]
+fair_value = model.predict(X)[0]
+premium_hkd = asking_price - fair_value
+```
+- This is Stage 4's model actually being *used*, not just evaluated. `completion_year`
+  turns a block number into an age the same way Stage 3 did for historical sales - so a
+  new listing is compared on exactly the same terms the model was trained on.
+- The premium is deliberately just `asking price minus fair value` - the residual concept
+  from the very first page of the project brief, now a real, running calculation.
+
+**Caveats built into the UI on purpose, not left for a README someone might not read**
+- A visible note that the model is typically off by ~HK$450,000, so small premiums should
+  read as noise.
+- A warning that the premium is not proof of overpricing - cardinal rule #8, written
+  directly into the app itself so anyone using it (not just someone who read the repo)
+  sees the caveat at the moment it matters.
+
+**What would break it**
+- `model.pkl` was trained on `[saleable_area_sqft, floor, age_at_sale]` in that exact
+  order (see `FEATURES` in `train_model.py`) - `app.py`'s `X = [[area, floor, age]]` has to
+  match that order exactly, or the model would silently apply the wrong coefficient to the
+  wrong number. Nothing currently checks this automatically; worth knowing if either file
+  changes later.
+- The fair-value estimate is expressed in whatever month the RVD index most recently
+  covered when Stage 3 ran (currently July 2026) - not literally "today." Close enough for
+  now given the gap is only a couple of months, but would drift if this app sits unused for
+  a long time without re-running Stages 3-4 on fresher data.
+
+**Checkpoint question**
+Why does the app compute `age` using `date.today().year`, while the training data
+(`clean_and_adjust.py`) computed `age_at_sale` using each row's own `sale_year` instead of
+today's date? What would go wrong if the app used `sale_year`-style logic for a listing that
+hasn't sold yet?
