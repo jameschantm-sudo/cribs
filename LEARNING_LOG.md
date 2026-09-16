@@ -103,3 +103,65 @@ Two flats sell for the exact same price, one in 2019 and one in 2024. After runn
 through `adjust_price`, will their adjusted values be the same, higher, or lower than the
 raw price — and why might they end up *different from each other* even though the raw price
 was identical?
+
+---
+
+## Stage 2 — Data collection, automated (2026-09-16)
+
+**A scope decision first, worth recording honestly**: you originally wanted this hand-
+collected, per the "real hours, not a script" rule in the project brief. Partway through you
+asked to automate it instead, initially framed around expanding to many districts. We talked
+through why "many districts, accurate" is really the already-deferred 2027 vision (breaks the
+≤5-feature rule, needs real location modeling, and is a much bigger scraping footprint) and
+you chose to keep the current build to City One Shatin only, phase 2 (multi-district) noted
+for later. Within that single-estate scope, you asked again for automation, and I agreed:
+~100 rows of one estate is a contained, bounded scrape (not the many-district version), and a
+script parsing exact HTML fields is more accurate at this volume than either hand-typing or
+asking an LLM to "read and summarize" pages (which risks silently mangling numbers).
+
+**What we built**
+- `collect_data.py` — fetches 14 of City One Shatin's 52 blocks (2 sampled from each of its 7
+  phases) from 28hse's public transaction history pages, one request every 1.5 seconds (not
+  hammering the site), saves the raw HTML for each page into `data/raw_28hse/` (so every row
+  is traceable back to an exact saved source page), and parses out one row per unit.
+- `data/city_one_shatin_transactions.csv` — **683 real transactions**, Feb 2018–Sep 2026,
+  $896K–$13M, 284–853 sqft, floors 1–36, spread across all 7 phases. Far more than the ~100
+  originally planned — that's good, more real data only reduces overfitting risk later.
+
+**The lines that actually matter**
+
+```python
+expected = area_sqft * rate_per_sqft
+pct_diff = abs(price_hkd - expected) / expected if expected else 1
+note = "" if pct_diff < 0.03 else "price/rate/area mismatch - verify"
+```
+- The page shows both a total price and a per-sqft rate for each sale. If they don't roughly
+  agree, that's a sign the regex grabbed the wrong number from the page — this line catches
+  that automatically instead of trusting every scrape blindly. All 683 rows passed.
+
+```python
+if not (floor_unit_match and area_match and price_match and rate_date_match):
+    skipped += 1
+    continue
+```
+- If any field is missing, the row is dropped, never guessed. I checked a sample of the 1,913
+  skipped cards by hand: they're units listed in the block's grid with *no* recorded sale (an
+  empty history), not a parsing failure — so dropping them is correct, not a data-quality bug.
+
+**Important limitation to carry into the methodology writeup**: `price_hkd` comes from a
+figure the site displays rounded (e.g. "$4.85M"), so it may be off by up to ~$10,000 from the
+true transacted price in some rows — a real precision limit of the source, not something we
+introduced. Also: `price_per_sqft_hkd_reference_only` exists **only** to sanity-check the
+scrape — it must never become a model feature (that would be data leakage, cardinal rule #1,
+since it's literally derived from price).
+
+**What would break it**
+- If 28hse changes their page's HTML structure, every regex in `collect_data.py` would need
+  updating — this is brittle by nature, tied to today's exact markup.
+- Running it again later will very likely re-fetch overlapping units with newer prices for
+  the same unit (multiple transactions over time) — worth knowing before re-running for
+  "more data," since it could quietly duplicate or skew toward already-covered units.
+
+**Checkpoint question**
+Why does `collect_data.py` write the raw HTML for every page into `data/raw_28hse/` before
+parsing anything out of it? What would be harder to do later if we'd only kept the final CSV?
