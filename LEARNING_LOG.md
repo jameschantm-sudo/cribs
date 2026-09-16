@@ -217,3 +217,76 @@ Two identical-looking flats sell for the same raw price, but one is in Phase 1 (
 1981) and one is in Phase 7 (completed 1988). If they sold on the exact same day, will their
 `age_at_sale` values be the same? Why does that matter for what the Stage 4 regression is
 about to learn?
+
+---
+
+## Stage 4 — The regression model (2026-09-16)
+
+**What we built**
+- `train_model.py` — fits a `LinearRegression` on `saleable_area_sqft`, `floor`, and
+  `age_at_sale` (3 features, well under the ≤5 limit) to predict `adjusted_price_hkd`.
+  Splits the 678 rows 80/20, trains only on the 80%, and reports metrics on the untouched
+  20% - the held-out test set the project brief requires.
+- `model.pkl` — the fitted model saved to disk, ready for Stage 5's Streamlit app to load
+  without re-training every time someone visits the page.
+
+**Two things went wrong on the first run - worth recording, because catching them is the
+actual point of "if a result looks too good, it's probably a bug"**
+
+1. **The single test-split R² (0.839) was misleadingly good.** Running 5-fold cross-
+   validation (refitting the model 5 different ways on 5 different 80/20 splits) showed R²
+   ranging from **0.58 to 0.84** depending purely on which rows happened to land in the test
+   set - mean 0.701. 0.839 wasn't fabricated or wrong, it just wasn't the honest number to
+   report on its own; a small test set (136 rows) can land lucky. The real headline number is
+   "R² around 0.70, with real fold-to-fold variation," not "R² = 0.84."
+2. **A scary-looking `RuntimeWarning: divide by zero encountered in matmul`** showed up on
+   every run. Rather than suppress it blindly, I checked whether it meant the predictions
+   were actually wrong: manually recomputed `X @ coefficients + intercept` by hand in plain
+   numpy and compared it to `model.predict()`'s output directly - they matched exactly (0.0
+   difference, no NaN/Inf anywhere). This turned out to be a known false-positive from this
+   Mac's Accelerate BLAS backend, not a real numerical error - now suppressed with a comment
+   explaining exactly why that's safe, instead of silently hidden.
+
+**The lines that actually matter**
+
+```python
+FEATURES = ["saleable_area_sqft", "floor", "age_at_sale"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+model = LinearRegression()
+model.fit(X_train, y_train)
+```
+- `model.fit` only ever sees `X_train`/`y_train` (80% of the data). Every metric reported on
+  `X_test`/`y_test` reflects the model predicting rows it never learned from - that gap is
+  the whole reason a held-out test set exists: it's the closest thing we have to "how would
+  this do on a brand new listing."
+
+**What the model actually learned (fit on the 80% training split)**
+- Base value (intercept): HK$3,001,638 - this number alone isn't meaningful (no real flat
+  has 0 sqft, floor 0, age 0); it's just the line's anchor, only meaningful combined with
+  real feature values.
+- `+HK$7,878` per additional sqft of saleable area
+- `+HK$16,497` per additional floor (higher floor = pricier - consistent with the usual
+  view/light/noise premium in HK high-rises)
+- `-HK$33,694` per additional year of age at the time of sale (older = cheaper - and since
+  the index adjustment already stripped out *market-wide* time trend, this is specifically
+  "does an older part of the estate sell for less than a newer part," not a market trend)
+- All three signs match real-world intuition - a good sign, though not proof of correctness
+  on its own.
+
+**Honest performance (the numbers to actually quote later)**: R² ≈ 0.70 (range 0.58-0.84
+across folds), MAE ≈ HK$450,000, meaning the model explains roughly 70% of the price
+variation in City One Shatin sales using just 3 objective features, and is typically off by
+around HK$450K (~8-9%) on a flat it hasn't seen.
+
+**What would break it**
+- Re-running with a different `random_state` changes which rows land in train vs test,
+  which is exactly why a single split's R^2 shouldn't be trusted alone - that's the whole
+  lesson from tonight.
+- If a future version added more features without more rows, R² on the *training* set would
+  keep climbing even as the model got worse at predicting new listings - watch the gap
+  between train and test performance, not just whichever number is higher.
+
+**Checkpoint question**
+If someone showed you only the training-set R² (0.678) and the single-split test R² (0.839)
+and asked "how accurate is this model," what number would you give them, and why is neither
+of those two numbers alone the right answer?
