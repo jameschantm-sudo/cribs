@@ -342,3 +342,38 @@ Why does the app compute `age` using `date.today().year`, while the training dat
 (`clean_and_adjust.py`) computed `age_at_sale` using each row's own `sale_year` instead of
 today's date? What would go wrong if the app used `sale_year`-style logic for a listing that
 hasn't sold yet?
+
+---
+
+## Stage 6 — Deployed (2026-09-17)
+
+**What we did**
+- Pushed the repo to GitHub (`github.com/jameschantm-sudo/cribs`), authenticated with a
+  Personal Access Token (GitHub no longer accepts a plain account password for `git push`
+  over HTTPS).
+- Deployed on Streamlit Community Cloud, connected directly to that GitHub repo -
+  `https://o2nbv4t8xtvmj23gt7fvth.streamlit.app` is now live and public.
+- Verified it properly, not just "the page loaded": used a real browser to load the app,
+  confirmed the UI matches the local version exactly, then actually clicked "Check this
+  listing" and confirmed the result (HK$5,285,968 fair value, HK$714,032 premium) matches
+  the same inputs tested locally in Stage 5, number for number.
+
+**One false alarm worth recording**: an early automated check of the URL reported a
+redirect to a Streamlit login/auth page, which looked like the sharing setting might be
+private. Checked the actual setting first (it was already "public and searchable") before
+concluding anything - the redirect turned out to be a limitation of the checking tool
+itself, not a real problem with the deployment. Worth remembering: when a tool's result
+looks alarming, verify with a better tool before acting on it, same principle as not
+trusting a suspiciously good R² without checking it a different way.
+
+**What would break it**: Streamlit Community Cloud rebuilds the app from `requirements.txt`
+on every deploy and redeploy - if a dependency version stops being available, or `model.pkl`
+was made with a different scikit-learn version than what gets installed on the cloud, the
+deployed app could behave differently from the local one. Worth a periodic real check (like
+the one just done), not just a "it deployed without error" assumption.
+
+**Checkpoint question**
+The GitHub repo is public, which means the raw HTML in `data/raw_28hse/` and the CSVs are
+now visible to anyone. Is that a problem, given what cardinal rule this project follows
+about presenting data honestly? What's actually in those files that makes them okay to be
+public?
