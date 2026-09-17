@@ -377,3 +377,41 @@ The GitHub repo is public, which means the raw HTML in `data/raw_28hse/` and the
 now visible to anyone. Is that a problem, given what cardinal rule this project follows
 about presenting data honestly? What's actually in those files that makes them okay to be
 public?
+
+---
+
+## Stage 7 — Documentation (2026-09-17)
+
+**What we built**
+- `README.md` — rewritten from the Stage 0 stub into a real front page: what the tool does
+  (and doesn't), the live link, a one-paragraph method summary, how to run it locally, and
+  the project's file structure.
+- `METHODOLOGY.md` — the actual case for this project: the problem it answers, why City One
+  Shatin, exactly how the index adjustment and regression work, the honest results (R² ≈
+  0.70, not the misleadingly good 0.839 from Stage 4's first run), limitations stated
+  plainly, and the two scope decisions made mid-build recorded honestly rather than smoothed
+  over.
+
+**Why two separate files, not one**: `README.md` is the front door - short, practical,
+answers "what is this and how do I run it." `METHODOLOGY.md` is the actual argument for why
+this project is credible - the thing worth pointing an interviewer or reviewer to. Mixing
+them would make the README too long to skim and bury the methodology's honesty under
+installation instructions.
+
+**A mistake caught while writing, not while running code**: a first draft of the
+Limitations section had a leftover sentence fragment from an earlier edit
+("displayed price rounding described above.") sitting on its own line, orphaned mid-list -
+not something that would ever throw an error, just something a careful read caught. Worth
+noting: documentation needs the same "check it before trusting it" habit as code, even
+though nothing crashes when prose is wrong.
+
+**What would break it**: every specific number in `METHODOLOGY.md` (R², MAE, coefficients,
+row counts) is a snapshot from Stage 4's run on this specific dataset. If the model is
+retrained later on more or different data, these numbers become stale and need updating -
+they're not live-computed from the writeup itself.
+
+**Checkpoint question**
+`METHODOLOGY.md` states R² ≈ 0.70 as "the honest number" instead of the single-split 0.839.
+If someone asked you why 0.70 rather than 0.84, could you explain the actual statistical
+reason without looking it up - not just "because it's more honest," but *why* a single
+train/test split can be misleading in the first place?
