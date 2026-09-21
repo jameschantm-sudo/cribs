@@ -544,3 +544,26 @@ The app's address box only ever *auto-selects* one of our three estates - it nev
 new one. If someone types a real Sham Shui Po address that isn't actually Mei Foo Sun Chuen,
 what does the app do, and why is that the honest choice instead of just using the Sham Shui
 Po data we do have as a rough stand-in?
+
+## Phase 2, Stage 4 — Documentation (2026-09-22)
+
+**What we did**: rewrote `README.md` and `METHODOLOGY.md` for the 3-estate version - updated
+row counts, results, coefficients, the new index-column-per-region table, the geocoding
+approach, and a fully honest Limitations section (including the Mei Foo coefficient lesson
+from Stage 2, explained properly this time instead of just noted in passing).
+
+**One more scope decision recorded rather than smoothed over**: `METHODOLOGY.md`'s "Scope
+decisions" section now has three entries instead of two - the Phase 2 fork itself (wanting
+"any address in Hong Kong," resolved into "free geocoding + 3 deliberately chosen estates,"
+not the full location-modeling version) is written down the same honest way the Phase 1
+automation decision was.
+
+**Also added**: a short, direct line in `README.md`'s Status section naming that this was
+built with AI-assisted implementation under direct human direction - not because it needed
+apologizing for, but because burying it would make the project's real story less defensible,
+not more.
+
+**Checkpoint question**
+`METHODOLOGY.md` now lists a coefficient of +HK$884,723 for Mei Foo Sun Chuen right next to
+the explanation of why reading it in isolation is misleading. Why include a number in the
+Results table at all, if you're also telling the reader not to trust it on its own?
