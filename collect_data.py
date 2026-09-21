@@ -1,15 +1,11 @@
 """
-Stage 2 (automated): pull real City One Shatin sold transactions from 28hse's
-public estate history pages.
+Stage 2 (Phase 2: multi-estate) - pull real sold transactions from 28hse's
+public estate history pages, for every estate configured in estate_info.py.
 
-What this does: fetches a fixed list of (phase, block) history pages
-sequentially with pauses between requests (not hammering the site), saves the
-raw HTML for each page (so results are auditable and re-parseable without
-re-fetching), extracts one row per unit card, and writes a CSV.
-
-What this does NOT do: guess or fill in any field. A row with a missing or
-malformed floor/area/price/date is dropped, not estimated - see cardinal
-rule #5 in the project brief (never present estimated data as real).
+Same method as the original single-estate version: fetch each sampled
+(phase, block) page sequentially with pauses between requests, save the raw
+HTML as an audit trail, extract one row per unit card, and never guess a
+missing field - drop the row instead.
 """
 
 import csv
@@ -18,28 +14,16 @@ import time
 import urllib.request
 from pathlib import Path
 
-ESTATE_SLUG = "city-one-shatin-4080"
-BASE_URL = f"https://www.28hse.com/en/estate/detail/{ESTATE_SLUG}/history"
+from estate_info import ESTATES
+
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 )
 REQUEST_DELAY_SECONDS = 1.5
 
-# Two blocks sampled from each of City One Shatin's 7 phases, so the data
-# spans the estate rather than clustering in one corner of it.
-PHASE_BLOCKS = [
-    (1, 1), (1, 2),
-    (2, 15), (2, 16),
-    (3, 29), (3, 30),
-    (4, 37), (4, 38),
-    (5, 27), (5, 28),
-    (6, 24), (6, 25),
-    (7, 34), (7, 35),
-]
-
 RAW_HTML_DIR = Path("data/raw_28hse")
-OUTPUT_CSV = Path("data/city_one_shatin_transactions.csv")
+OUTPUT_CSV = Path("data/all_estates_transactions.csv")
 
 CARD_MARKER = 'class="ui card deal_trend_unit_card_mobile" unit-id="'
 FLOOR_UNIT_RE = re.compile(r'unitRecordUrl"[^>]*>\s*([^<]+?)\s*</a>')
@@ -51,17 +35,17 @@ RATE_DATE_RE = re.compile(
 FLOOR_RE = re.compile(r'^(\d+)/F\s*(.*)$')
 
 
-def fetch_page(phase, block):
-    url = f"{BASE_URL}/stateno-{phase}/blockno-{block}"
+def fetch_page(slug, phase, block):
+    url = f"https://www.28hse.com/en/estate/detail/{slug}/history/stateno-{phase}/blockno-{block}"
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(request, timeout=20) as response:
         html = response.read().decode("utf-8")
     RAW_HTML_DIR.mkdir(parents=True, exist_ok=True)
-    (RAW_HTML_DIR / f"phase{phase}_block{block}.html").write_text(html, encoding="utf-8")
+    (RAW_HTML_DIR / f"{slug}_phase{phase}_block{block}.html").write_text(html, encoding="utf-8")
     return html, url
 
 
-def parse_cards(html, phase, block, source_url):
+def parse_cards(html, estate_key, phase, block, source_url):
     rows = []
     skipped = 0
     card_starts = [m.start() for m in re.finditer(re.escape(CARD_MARKER), html)]
@@ -80,7 +64,7 @@ def parse_cards(html, phase, block, source_url):
 
         floor_match = FLOOR_RE.match(floor_unit_match.group(1).strip())
         if not floor_match:
-            skipped += 1  # e.g. "G/F" or a floor range - don't guess, drop it
+            skipped += 1
             continue
         floor = int(floor_match.group(1))
         unit = floor_match.group(2).strip()
@@ -99,13 +83,12 @@ def parse_cards(html, phase, block, source_url):
         rate_per_sqft = int(rate_date_match.group(1).replace(",", ""))
         sale_date = rate_date_match.group(2)
 
-        # Sanity check: total price should roughly equal area x rate.
-        # This flags rows where the regex may have grabbed the wrong number.
         expected = area_sqft * rate_per_sqft
         pct_diff = abs(price_hkd - expected) / expected if expected else 1
         note = "" if pct_diff < 0.03 else "price/rate/area mismatch - verify"
 
         rows.append({
+            "estate": estate_key,
             "phase": phase,
             "block": block,
             "unit": unit,
@@ -120,24 +103,36 @@ def parse_cards(html, phase, block, source_url):
     return rows, skipped
 
 
-def main():
+def collect_estate(estate_key):
+    config = ESTATES[estate_key]
     all_rows = []
     total_skipped = 0
-
-    for phase, block in PHASE_BLOCKS:
-        print(f"Fetching Phase {phase}, Block {block}...")
-        html, url = fetch_page(phase, block)
-        rows, skipped = parse_cards(html, phase, block, url)
-        print(f"  -> {len(rows)} transactions parsed, {skipped} cards skipped (incomplete data)")
+    for phase, block in config["sample_phase_blocks"]:
+        print(f"  Fetching {config['name']} Phase {phase}, Block {block}...")
+        html, url = fetch_page(config["slug"], phase, block)
+        rows, skipped = parse_cards(html, estate_key, phase, block, url)
+        print(f"    -> {len(rows)} transactions parsed, {skipped} cards skipped")
         all_rows.extend(rows)
         total_skipped += skipped
         time.sleep(REQUEST_DELAY_SECONDS)
+    return all_rows, total_skipped
 
-    # De-duplicate in case the same unit ever appears on more than one page
+
+def main(estate_keys=None):
+    estate_keys = estate_keys or list(ESTATES.keys())
+    all_rows = []
+    total_skipped = 0
+
+    for estate_key in estate_keys:
+        print(f"Collecting {ESTATES[estate_key]['name']}...")
+        rows, skipped = collect_estate(estate_key)
+        all_rows.extend(rows)
+        total_skipped += skipped
+
     seen = set()
     deduped = []
     for row in all_rows:
-        key = (row["phase"], row["block"], row["unit"], row["floor"], row["sale_date"])
+        key = (row["estate"], row["phase"], row["block"], row["unit"], row["floor"], row["sale_date"])
         if key in seen:
             continue
         seen.add(key)
@@ -147,7 +142,7 @@ def main():
         row["transaction_id"] = i
 
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
-    fieldnames = ["transaction_id", "phase", "block", "unit", "floor",
+    fieldnames = ["transaction_id", "estate", "phase", "block", "unit", "floor",
                   "saleable_area_sqft", "price_hkd",
                   "price_per_sqft_hkd_reference_only", "sale_date",
                   "source_url", "notes"]

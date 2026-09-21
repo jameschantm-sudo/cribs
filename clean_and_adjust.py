@@ -1,35 +1,31 @@
 """
-Stage 3: turn the raw scraped transactions into a modeling-ready dataset.
+Stage 3 (Phase 2: multi-estate) - clean the combined raw transactions and
+apply each estate's own index adjustment.
 
-Three things happen here:
-1. Every sold price gets converted into "today's market terms" using the
-   RVD index from Stage 1, so a 2019 sale and a 2025 sale become comparable.
-2. Each transaction gets an age (how old the building was when it sold),
-   using each phase's real construction-completion year.
-3. A loose sanity check runs, dropping anything implausible (a parsing
-   slip, not a real transaction) rather than trusting every row blindly.
+Same three things as the single-estate version, just per-estate now:
+1. Every price is converted into "today's market terms" - using each
+   estate's own correct RVD column (region matters: Hong Kong Island,
+   Kowloon, and New Territories moved differently over this period).
+2. Each transaction gets age_at_sale, from its own estate's real
+   phase-completion years.
+3. A loose sanity check drops anything implausible.
 """
 
 import pandas as pd
 
-from estate_info import PHASE_COMPLETION_YEAR
+from estate_info import ESTATES
 from index_adjust import load_index, adjust_price
 
-RAW_CSV = "data/city_one_shatin_transactions.csv"
-OUTPUT_CSV = "data/city_one_shatin_modeling_ready.csv"
+RAW_CSV = "data/all_estates_transactions.csv"
+OUTPUT_CSV = "data/all_estates_modeling_ready.csv"
 
 
 def clean_and_adjust():
     df = pd.read_csv(RAW_CSV)
-    index_series = load_index()
     before = len(df)
 
-    df = df.drop_duplicates(subset=["phase", "block", "unit", "floor", "sale_date"])
+    df = df.drop_duplicates(subset=["estate", "phase", "block", "unit", "floor", "sale_date"])
 
-    # A loose plausibility net, not a tight domain filter - real City One
-    # Shatin data ranges ~284-853 sqft, $896K-$13M, floors 1-36. These
-    # bounds are deliberately much wider, just to catch a parsing slip
-    # (e.g. a stray digit), not to trim real variation out of the data.
     plausible = (
         df["saleable_area_sqft"].between(150, 2000)
         & df["price_hkd"].between(500_000, 50_000_000)
@@ -39,33 +35,39 @@ def clean_and_adjust():
     dropped = before - len(df)
 
     df["sale_year"] = pd.to_datetime(df["sale_date"]).dt.year
-    df["age_at_sale"] = df["sale_year"] - df["phase"].map(PHASE_COMPLETION_YEAR)
 
-    # A handful of sales are more recent than the RVD index's latest
-    # published month - there's nothing to adjust those against yet, so
-    # they're dropped rather than adjusted using a guessed/latest-available
-    # index value.
-    latest_indexed_month = index_series.index.max()
-    too_recent = pd.to_datetime(df["sale_date"]).dt.to_period("M").dt.to_timestamp() > latest_indexed_month
-    too_recent_count = int(too_recent.sum())
-    df = df[~too_recent]
+    adjusted_rows = []
+    too_recent_count = 0
+    for estate_key, group in df.groupby("estate"):
+        config = ESTATES[estate_key]
+        index_series = load_index(column=config["index_column"])
+        latest_indexed_month = index_series.index.max()
 
-    df["adjusted_price_hkd"] = df.apply(
-        lambda row: round(adjust_price(row["price_hkd"], row["sale_date"], index_series)),
-        axis=1,
-    )
+        group = group.copy()
+        group["age_at_sale"] = group["sale_year"] - group["phase"].map(config["phase_completion_year"])
 
-    df = df.reset_index(drop=True)
-    df["transaction_id"] = range(1, len(df) + 1)
+        too_recent = pd.to_datetime(group["sale_date"]).dt.to_period("M").dt.to_timestamp() > latest_indexed_month
+        too_recent_count += int(too_recent.sum())
+        group = group[~too_recent]
 
-    df = df[["transaction_id", "block", "floor", "saleable_area_sqft",
-             "age_at_sale", "sale_date", "price_hkd", "adjusted_price_hkd"]]
-    df.to_csv(OUTPUT_CSV, index=False)
+        group["adjusted_price_hkd"] = group.apply(
+            lambda row: round(adjust_price(row["price_hkd"], row["sale_date"], index_series)),
+            axis=1,
+        )
+        adjusted_rows.append(group)
+
+    result = pd.concat(adjusted_rows, ignore_index=True)
+    result["transaction_id"] = range(1, len(result) + 1)
+
+    result = result[["transaction_id", "estate", "block", "floor", "saleable_area_sqft",
+                      "age_at_sale", "sale_date", "price_hkd", "adjusted_price_hkd"]]
+    result.to_csv(OUTPUT_CSV, index=False)
 
     print(f"Started with {before} rows, dropped {dropped} as implausible, "
           f"dropped {too_recent_count} as more recent than the index can adjust, "
-          f"{len(df)} rows written to {OUTPUT_CSV}")
-    return df
+          f"{len(result)} rows written to {OUTPUT_CSV}")
+    print(result.estate.value_counts())
+    return result
 
 
 if __name__ == "__main__":

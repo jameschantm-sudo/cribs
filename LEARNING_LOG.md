@@ -415,3 +415,89 @@ they're not live-computed from the writeup itself.
 If someone asked you why 0.70 rather than 0.84, could you explain the actual statistical
 reason without looking it up - not just "because it's more honest," but *why* a single
 train/test split can be misleading in the first place?
+
+---
+
+# Phase 2 — Multi-estate expansion
+
+Started 2026-09-18, after Phase 1 (single-estate, City One Shatin) shipped. Goal: extend to
+Taikoo Shing and Mei Foo Sun Chuen, so the tool covers three real, very different price
+tiers - and support typing an address instead of only picking from a known list.
+
+## Phase 2, Stage 1 — Geocoding research and data collection (2026-09-21)
+
+**What we found**: Hong Kong's government runs a free Address Lookup Service
+(`als.gov.hk`) - no API key, no cost - that resolves any real address to its district.
+Tested directly against Mid-Levels, Sham Shui Po, and named-estate addresses; all resolved
+correctly. This solves "type an address" without needing a paid mapping API.
+
+We deliberately did **not** import a third-party district price index (checked two - both
+either blocked automated access or turned out to be demographic data, not a citable price
+series). Instead: pick one large, well-known estate per district, scrape it the same proven
+way as City One Shatin, and let the regression learn that district's price level from real
+data via an "estate" feature - keeping everything traceable to real transactions, nothing
+imported as a black box.
+
+**What we built**
+- `estate_info.py` now holds all three estates' config (28hse slug, real district, real
+  per-phase completion years sourced from 28hse's own phase pages, and which (phase, block)
+  pairs to sample).
+- `collect_data.py` generalized to loop over any list of estates instead of one hardcoded
+  estate. Collected **1,000 new transactions** (745 Taikoo Shing, 255 Mei Foo Sun Chuen),
+  combined with the existing 683 City One Shatin rows into `data/all_estates_transactions.csv`
+  (1,683 total).
+- **A real correctness catch**: Taikoo Shing (Hong Kong Island) and Mei Foo Sun Chuen
+  (Kowloon) can't honestly use City One Shatin's "Class B, New Territories" index column -
+  that would adjust their prices against the wrong region's market movement. Each estate
+  now has its own `index_column` in `estate_info.py` (Hong Kong / Kowloon / New Territories
+  respectively), matched to its real region and typical unit size.
+- `clean_and_adjust.py` generalized the same way - loops per estate, applies each one's own
+  index and completion years. Output: `data/all_estates_modeling_ready.csv`, 1,663 rows.
+
+**Sanity check that mattered**: implied price-per-sqft from the cleaned data (Taikoo Shing
+≈HK$16,282, City One Shatin ≈HK$13,406, Mei Foo Sun Chuen ≈HK$11,031) matches real published
+Hong Kong market figures for these three estates almost exactly - strong evidence the
+per-estate index adjustment is actually correct, not just plausible-looking.
+
+## Phase 2, Stage 2 — Retraining with an estate feature (2026-09-21)
+
+**What we built**: `train_model.py` now includes "which estate" as 2 extra dummy features
+(`is_taikoo_shing`, `is_mei_foo_sun_chuen`; City One Shatin is the baseline, both 0) -
+5 features total for ~1,663 rows, still inside the project's max-5-features rule.
+
+**Honest results**: R² ≈ 0.746 (5-fold CV range 0.678-0.855) - similar to, even slightly
+better than, the single-estate version. MAE ≈HK$896,000, roughly double the single-estate
+figure, which makes sense: errors are now in dollar terms across a much wider price range
+(City One Shatin to Taikoo Shing), not a sign of the model getting worse.
+
+**A coefficient that looked wrong, and wasn't - once checked properly**: the raw fitted
+coefficient for `is_mei_foo_sun_chuen` was *positive* (+HK$884,723), which looked backwards
+- Mei Foo Sun Chuen has the *lowest* real price per sqft of the three estates. Checking the
+model's actual predictions at a shared hypothetical age (40) for all three estates seemed to
+confirm the problem: it predicted Mei Foo as *more* expensive per sqft than City One Shatin.
+
+The catch: age 40 doesn't exist for any real Mei Foo Sun Chuen flat in the data - its real
+range is 40-58 (median 50), since the estate is genuinely much older than the other two.
+Forcing every estate to the same age asked the model to extrapolate Mei Foo outside the
+range it actually learned from - an unreliable question, not evidence of a bug. Re-running
+the comparison using **each estate's own realistic median age** reproduced the correct
+real-world ordering exactly (Taikoo Shing > City One Shatin > Mei Foo Sun Chuen, matching
+the raw medians almost to the dollar).
+
+**The actual lesson**: when features are correlated (here, "which estate" and "building
+age" are correlated, because Mei Foo happens to be uniformly much older), a single
+coefficient's sign can be genuinely misleading read in isolation. The fix isn't to distrust
+the model - it's to test it the same way you'd use it: with realistic, in-range inputs, not
+a value picked to make estates directly comparable that no real flat in one of them actually
+has.
+
+**What would break it**: the app must never let a user pick an age combination that falls
+outside what a chosen estate's real data covers (e.g. a very "young" age for Mei Foo Sun
+Chuen) - the model's answer there would be an unreliable extrapolation, not a real
+estimate. This needs handling in the next stage (the app itself), not left as a silent trap.
+
+**Checkpoint question**
+Why did testing the model at a *shared* age of 40 across all three estates give a
+backwards-looking answer, while testing each estate at its *own* real median age gave the
+correct real-world ordering? What does this tell you about the danger of asking a regression
+model a question its training data never actually saw?

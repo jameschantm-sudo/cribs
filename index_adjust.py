@@ -1,24 +1,30 @@
 """
-Stage 1: look up the RVD Class B (New Territories) price index for a given
+Stage 1: look up the RVD price index (by size class and region) for a given
 month, and use it to convert an old sold price into "today's money."
 
 Why: a flat that sold in 2019 and a flat that sold in 2024 aren't directly
 comparable — the whole market moved between those dates. This strips that
 market-wide movement out, so what's left in the sold-price data reflects the
 flat's own qualities, not when it happened to sell.
+
+Phase 2 note: different estates need different columns (a Hong Kong Island
+estate shouldn't be adjusted against the New Territories index) - see each
+estate's "index_column" in estate_info.py. `load_index` defaults to City One
+Shatin's column for backwards compatibility, but every caller working with
+more than one estate should pass its own column explicitly.
 """
 
 import pandas as pd
 
 INDEX_CSV_PATH = "data/rvd_avg_price_by_class_monthly.csv"
-INDEX_COLUMN = "Class B New Territories"
+DEFAULT_INDEX_COLUMN = "Class B New Territories"
 
 
-def load_index(csv_path=INDEX_CSV_PATH):
-    """Load the RVD CSV into a DataFrame indexed by month (as a Timestamp)."""
+def load_index(csv_path=INDEX_CSV_PATH, column=DEFAULT_INDEX_COLUMN):
+    """Load one column of the RVD CSV into a Series indexed by month."""
     df = pd.read_csv(csv_path, skiprows=1)
     df["Month"] = pd.to_datetime(df["Month"], format="%m-%Y")
-    return df.set_index("Month")[INDEX_COLUMN]
+    return df.set_index("Month")[column]
 
 
 def index_at(index_series, date):

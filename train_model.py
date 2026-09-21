@@ -24,10 +24,22 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, r2_score
 from sklearn.model_selection import KFold, cross_val_score, train_test_split
 
-DATA_CSV = "data/city_one_shatin_modeling_ready.csv"
+DATA_CSV = "data/all_estates_modeling_ready.csv"
 MODEL_PATH = "model.pkl"
-FEATURES = ["saleable_area_sqft", "floor", "age_at_sale"]
+# "estate" is categorical (3 estates) - encoded as 2 dummy columns, with
+# city_one_shatin as the baseline (both dummies 0). Still 5 features total
+# for ~1,663 rows, well inside the project's max-5-features rule.
+BASE_FEATURES = ["saleable_area_sqft", "floor", "age_at_sale"]
+ESTATE_DUMMY_COLUMNS = ["is_taikoo_shing", "is_mei_foo_sun_chuen"]
+FEATURES = BASE_FEATURES + ESTATE_DUMMY_COLUMNS
 TARGET = "adjusted_price_hkd"
+
+
+def add_estate_dummies(df):
+    df = df.copy()
+    df["is_taikoo_shing"] = (df["estate"] == "taikoo_shing").astype(int)
+    df["is_mei_foo_sun_chuen"] = (df["estate"] == "mei_foo_sun_chuen").astype(int)
+    return df
 
 # LinearRegression.predict() can trigger a spurious "divide by zero" /
 # "overflow" RuntimeWarning on some Macs (Apple Accelerate BLAS false
@@ -47,6 +59,7 @@ def report(label, y_true, y_pred):
 
 def train():
     df = pd.read_csv(DATA_CSV)
+    df = add_estate_dummies(df)
     # Explicit float64 avoids a harmless but noisy numpy/Accelerate BLAS
     # warning on some Macs when sklearn is fed pandas' default int64 columns.
     X = df[FEATURES].to_numpy(dtype="float64")
