@@ -501,3 +501,46 @@ Why did testing the model at a *shared* age of 40 across all three estates give 
 backwards-looking answer, while testing each estate at its *own* real median age gave the
 correct real-world ordering? What does this tell you about the danger of asking a regression
 model a question its training data never actually saw?
+
+## Phase 2, Stage 3 — The multi-estate app (2026-09-21)
+
+**What we built**: `app.py` rewritten for three estates plus real geocoding.
+- A free-text address box calls Hong Kong's free government Address Lookup Service and
+  auto-selects the matching estate if it's one we cover - tested live with "18 Taikoo Shing
+  Road" and it correctly recognized Taikoo Shing, Eastern District, and pre-selected it.
+- If the address resolves to a district we don't cover, the app says so plainly instead of
+  guessing - same honesty rule as everything else in this project.
+- A manual "or choose an estate directly" dropdown always works too, independent of whether
+  geocoding succeeds - the app never *depends* on an external service being up.
+- `estate_info.py` now has the **complete** real block list for all three estates (52 + 61 +
+  195 blocks - not just the ones we scraped), so someone can pick any real block and get a
+  correct age, even for blocks we never collected a transaction from. Age only needs a
+  block's *phase*, not its own sale history.
+- A new guardrail directly closes last stage's lesson: if someone enters an area or floor
+  outside what we actually observed for the chosen estate, the app now says so before
+  showing the estimate, instead of silently extrapolating.
+
+**The lines that actually matter**
+
+```python
+def match_estate(als_estate_name):
+    for key, config in ESTATES.items():
+        if config["name"].upper() in als_estate_name.upper() or als_estate_name.upper() in config["name"].upper():
+            return key
+    return None
+```
+- This is the honesty boundary of the whole address feature: geocoding tells us *where* an
+  address is, but we only ever act on it if it matches a *named estate we actually have
+  training data for* - not "somewhere in the same district," which would be a much weaker,
+  more misleading claim.
+
+**What would break it**: the ALS lookup is a live network call to an external government
+service - `geocode()` wraps it in a broad try/except so a network hiccup or API change fails
+quietly into "couldn't resolve that address," never crashes the app. The manual dropdown is
+the fallback that keeps the app fully usable even if ALS is ever down.
+
+**Checkpoint question**
+The app's address box only ever *auto-selects* one of our three estates - it never invents a
+new one. If someone types a real Sham Shui Po address that isn't actually Mei Foo Sun Chuen,
+what does the app do, and why is that the honest choice instead of just using the Sham Shui
+Po data we do have as a rough stand-in?
