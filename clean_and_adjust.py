@@ -26,9 +26,12 @@ def clean_and_adjust():
 
     df = df.drop_duplicates(subset=["estate", "phase", "block", "unit", "floor", "sale_date"])
 
+    # Widened for Phase 2's luxury estates (Dynasty Court, Repulse Bay Garden
+    # genuinely reach ~4,600 sqft and ~HK$250M) - still a loose safety net
+    # for parsing slips, not a tight domain filter.
     plausible = (
-        df["saleable_area_sqft"].between(150, 2000)
-        & df["price_hkd"].between(500_000, 50_000_000)
+        df["saleable_area_sqft"].between(150, 8000)
+        & df["price_hkd"].between(500_000, 500_000_000)
         & df["floor"].between(1, 70)
     )
     df = df[plausible]
@@ -38,6 +41,7 @@ def clean_and_adjust():
 
     adjusted_rows = []
     too_recent_count = 0
+    unindexed_month_count = 0
     for estate_key, group in df.groupby("estate"):
         config = ESTATES[estate_key]
         index_series = load_index(column=config["index_column"])
@@ -50,10 +54,16 @@ def clean_and_adjust():
         too_recent_count += int(too_recent.sum())
         group = group[~too_recent]
 
-        group["adjusted_price_hkd"] = group.apply(
-            lambda row: round(adjust_price(row["price_hkd"], row["sale_date"], index_series)),
-            axis=1,
-        )
+        def try_adjust(row):
+            try:
+                return round(adjust_price(row["price_hkd"], row["sale_date"], index_series))
+            except ValueError:
+                return None
+
+        group["adjusted_price_hkd"] = group.apply(try_adjust, axis=1)
+        unindexed_month_count += int(group["adjusted_price_hkd"].isna().sum())
+        group = group[group["adjusted_price_hkd"].notna()]
+        group["adjusted_price_hkd"] = group["adjusted_price_hkd"].astype(int)
         adjusted_rows.append(group)
 
     result = pd.concat(adjusted_rows, ignore_index=True)
@@ -65,6 +75,7 @@ def clean_and_adjust():
 
     print(f"Started with {before} rows, dropped {dropped} as implausible, "
           f"dropped {too_recent_count} as more recent than the index can adjust, "
+          f"dropped {unindexed_month_count} whose month has no RVD data for that class, "
           f"{len(result)} rows written to {OUTPUT_CSV}")
     print(result.estate.value_counts())
     return result

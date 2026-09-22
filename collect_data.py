@@ -23,11 +23,18 @@ USER_AGENT = (
 REQUEST_DELAY_SECONDS = 1.5
 
 RAW_HTML_DIR = Path("data/raw_28hse")
-OUTPUT_CSV = Path("data/all_estates_transactions.csv")
+# Deliberately NOT "all_estates_transactions.csv" - this script only ever
+# collects whichever estates it's given, so writing to the combined file
+# would silently overwrite data for estates not in this run. Merging
+# collected batches into the combined file is a separate, explicit step.
+OUTPUT_CSV = Path("data/collect_data_output.csv")
 
 CARD_MARKER = 'class="ui card deal_trend_unit_card_mobile" unit-id="'
 FLOOR_UNIT_RE = re.compile(r'unitRecordUrl"[^>]*>\s*([^<]+?)\s*</a>')
-AREA_RE = re.compile(r'<div>(\d+)ft²</div>')
+# Area can be comma-formatted for large units (e.g. "5,549ft²" in luxury
+# estates) - the original single-estate version never hit this since those
+# estates' units were all under 1,000 sqft.
+AREA_RE = re.compile(r'<div>([\d,]+)ft²</div>')
 TOTAL_PRICE_RE = re.compile(r'<div>\$([\d,.]+)(M|K)?</div>')
 RATE_DATE_RE = re.compile(
     r'Price:\s*@\$([\d,]+)</div><div>Date:\s*(\d{4}-\d{2}-\d{2})</div>'
@@ -69,7 +76,7 @@ def parse_cards(html, estate_key, phase, block, source_url):
         floor = int(floor_match.group(1))
         unit = floor_match.group(2).strip()
 
-        area_sqft = int(area_match.group(1))
+        area_sqft = int(area_match.group(1).replace(",", ""))
 
         raw_price, suffix = price_match.groups()
         raw_price = float(raw_price.replace(",", ""))

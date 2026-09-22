@@ -567,3 +567,67 @@ not more.
 `METHODOLOGY.md` now lists a coefficient of +HK$884,723 for Mei Foo Sun Chuen right next to
 the explanation of why reading it in isolation is misleading. Why include a number in the
 Results table at all, if you're also telling the reader not to trust it on its own?
+
+## Phase 2, Stage 5 — Two luxury estates, and a real architecture failure (2026-09-22)
+
+**What we set out to do**: add Dynasty Court (Mid-Levels) and Repulse Bay Garden, at your
+request, to represent genuinely wealthy districts - the other five estates all cluster in a
+much narrower, mass-market price band. This stage hit more real bugs than any other so far,
+each one caught and fixed rather than papered over.
+
+**Bug 1 - comma-formatted areas silently dropped.** Luxury units are large enough that the
+site displays area as "5,549ft²" instead of "327ft²" - the original regex only matched plain
+digits, so every card with a comma-formatted area failed to parse, even ones with complete
+real sale data. Result: 0 transactions parsed on the first run, for either estate. Checked a
+sample card by hand before believing "no data" - found real transactions sitting right there,
+just unmatched by the regex. Fixed the regex to allow commas, strip them before converting to
+a number.
+
+**Bug 2 - RVD's index has literal "-" for rare classes.** Dynasty Court and Repulse Bay
+Garden's units are big enough to need "Class D" and "Class E" columns, which are rare enough
+that RVD sometimes has zero sales to report for a given month and writes "-" instead of a
+number. That silently made the whole column text instead of numeric. Fixed by coercing to
+numeric on load and raising a clear, specific error (rather than a wrong number) if a real
+transaction happens to fall in one of those gap months.
+
+**Bug 3 - the plausibility filter was too narrow for luxury prices.** The Stage 3 sanity
+check capped prices at HK$50M and area at 2,000 sqft - both routinely exceeded by real
+Dynasty Court and Repulse Bay Garden sales (up to HK$246M, 4,621 sqft). Widened the bounds;
+still a loose safety net, not a tight one.
+
+**Bug 4 - a genuine data-loss near-miss.** `collect_data.py`'s output path was the same
+filename as the combined 5-estate file it should never touch directly. Running it for just
+the 2 new estates overwrote the whole combined dataset with only those 2 estates' rows -
+caught immediately by checking row counts after merging, not assumed correct. Recovered the
+lost 1,683 rows from git history (this is exactly why we commit after every stage) and fixed
+the script so its own output path can never collide with the combined file again.
+
+**Bug 5 - the real one: one shared model breaks under a wide price range.** Fitting one
+regression with "which estate" as extra dummy features (the approach from Stage 2) failed
+badly once Dynasty Court's ~HK$77M average joined the mix: to fit that scale, the shared
+area/floor/age coefficients got pulled to luxury-market size, then wildly over-predicted the
+mass-market estates using those same coefficients - one City One Shatin flat came back with
+a **negative** predicted price. Caught by checking individual predictions for our
+already-trusted estate, not just the aggregate R² (which looked fine, 0.9, precisely because
+the errors cancelled out on average). **Fix: a completely separate regression per estate**,
+each trained only on its own data. Simpler, not more complex - back to 3 features per model
+- and it fixed City One Shatin's numbers back to matching the original Phase 1 result almost
+exactly.
+
+**Bug 6 - `estate_info.py`'s block lookup never included the two new estates.** Found live
+in the browser: selecting Dynasty Court threw `KeyError: 'dynasty_court'` from
+`blocks_for()`. Added real block/tower names for both (Dynasty Court's 5 named towers,
+Repulse Bay Garden's 12 street-address-named blocks) and the missing `OBSERVED_RANGES`
+entries in the same pass.
+
+**A real decision, not a technical bug**: Repulse Bay Garden's own model, even fit
+correctly, had essentially no predictive power (R² near zero, some cross-validation folds
+negative) - only 40 real transactions exist for the whole estate. Rather than ship it with
+false confidence, excluded it from the app entirely (a documented `MIN_ROWS_TO_SHIP`
+threshold in `train_model.py`), while keeping its real, honestly-collected data in the repo.
+
+**Checkpoint question**
+The shared-model version had R² ≈ 0.9 - higher than any per-estate model achieved
+separately - right before it was discovered to be predicting a negative price for a real
+flat. How can a model's aggregate accuracy score look great while it's badly wrong on
+individual, everyday cases? What part of R²'s definition makes that possible?

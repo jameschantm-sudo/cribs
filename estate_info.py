@@ -50,6 +50,22 @@ ESTATES = {
             (5, 116), (5, 117), (6, 139), (6, 140), (7, 164), (7, 165), (8, 176), (8, 177),
         ],
     },
+    "dynasty_court": {
+        "name": "Dynasty Court",
+        "slug": "dynasty-court-787",
+        "district": "CENTRAL & WESTERN DISTRICT",
+        "index_column": "Class D Hong Kong",  # median 1,530 sqft - checked against real collected data, not guessed
+        "phase_completion_year": {1: 1991},
+        "sample_phase_blocks": [(1, 1), (1, 2), (1, 3), (1, 4), (1, 5)],
+    },
+    "repulse_bay_garden": {
+        "name": "Repulse Bay Garden",
+        "slug": "repulse-bay-garden-201",
+        "district": "SOUTHERN DISTRICT",
+        "index_column": "Class E Hong Kong",  # median 2,049 sqft - checked against real collected data, not guessed
+        "phase_completion_year": {1: 1970},
+        "sample_phase_blocks": [(1, b) for b in range(1, 13)],
+    },
 }
 
 # Real observed range in the training data (data/all_estates_modeling_ready.csv)
@@ -59,6 +75,8 @@ OBSERVED_RANGES = {
     "city_one_shatin": {"area": (284, 853), "floor": (1, 36)},
     "taikoo_shing": {"area": (440, 922), "floor": (1, 30)},
     "mei_foo_sun_chuen": {"area": (437, 927), "floor": (1, 20)},
+    "dynasty_court": {"area": (1513, 4621), "floor": (1, 46)},
+    "repulse_bay_garden": {"area": (1513, 2576), "floor": (1, 20)},
 }
 
 # City One Shatin: 52 blocks, numbered contiguously by phase.
@@ -96,10 +114,23 @@ _TAIKOO_SHING_BLOCKS = {
     5: (8, 'Pak Hoi'), 9: (8, 'Tung Hoi'), 17: (8, 'Nam Hoi'),
 }
 
+# Dynasty Court: 5 named towers, single phase.
+_DYNASTY_COURT_BLOCKS = {b: (1, f"Tower {b}") for b in range(1, 6)}
+
+# Repulse Bay Garden: 12 blocks named by street address, single phase.
+_REPULSE_BAY_GARDEN_BLOCKS = {
+    b: (1, f"{addr} Belleview Drive")
+    for b, addr in zip(range(1, 13), [40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18])
+}
+
 
 def _build_block_lookup():
     """{estate_key: {block_no: (phase, display_name)}} for every real block."""
-    lookup = {"taikoo_shing": _TAIKOO_SHING_BLOCKS}
+    lookup = {
+        "taikoo_shing": _TAIKOO_SHING_BLOCKS,
+        "dynasty_court": _DYNASTY_COURT_BLOCKS,
+        "repulse_bay_garden": _REPULSE_BAY_GARDEN_BLOCKS,
+    }
     for estate_key, ranges in [("city_one_shatin", _CITY_ONE_RANGES), ("mei_foo_sun_chuen", _MEI_FOO_RANGES)]:
         lookup[estate_key] = {
             block: (phase, f"Block {block}")

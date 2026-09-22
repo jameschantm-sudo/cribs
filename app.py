@@ -9,15 +9,24 @@ import streamlit as st
 from estate_info import ESTATES, OBSERVED_RANGES, block_label, blocks_for, completion_year
 
 MODEL_PATH = "model.pkl"
-MODEL_MAE_HKD = 900_000  # from Phase 2's cross-validation - see LEARNING_LOG.md
 ALS_URL = "https://www.als.gov.hk/lookup"
+
+# Each estate has its own model with its own real accuracy - from Phase 2's
+# per-estate cross-validation (see LEARNING_LOG.md). Reported per estate,
+# not as one shared number, since they genuinely differ a lot.
+MODEL_MAE_HKD = {
+    "city_one_shatin": 454_501,
+    "taikoo_shing": 1_167_952,
+    "mei_foo_sun_chuen": 698_679,
+    "dynasty_court": 8_189_785,
+}
 
 
 @st.cache_resource
-def load_model():
+def load_models():
     with open(MODEL_PATH, "rb") as f:
         saved = pickle.load(f)
-    return saved["model"], saved["features"]
+    return saved["models"], saved["features"]
 
 
 def geocode(address):
@@ -38,12 +47,15 @@ def geocode(address):
         return None, None
 
 
-def match_estate(als_estate_name):
-    """Match ALS's estate name text to one of our covered estates, if any."""
+def match_estate(als_estate_name, covered_keys):
+    """Match ALS's estate name text to one of our covered, shippable
+    estates, if any - never an estate we collected data for but excluded
+    (e.g. Repulse Bay Garden - too few transactions to model reliably)."""
     if not als_estate_name:
         return None
-    for key, config in ESTATES.items():
-        if config["name"].upper() in als_estate_name.upper() or als_estate_name.upper() in config["name"].upper():
+    for key in covered_keys:
+        name = ESTATES[key]["name"]
+        if name.upper() in als_estate_name.upper() or als_estate_name.upper() in name.upper():
             return key
     return None
 
@@ -54,7 +66,9 @@ st.write(
     "is — not where prices are headed."
 )
 
-model, features = load_model()
+models, features = load_models()
+covered_keys = list(models.keys())
+estate_names = {key: ESTATES[key]["name"] for key in covered_keys}
 
 st.subheader("Find your estate")
 address = st.text_input("Type an address (optional)", placeholder="e.g. 18 Taikoo Shing Road")
@@ -62,22 +76,21 @@ matched_key = None
 if address:
     with st.spinner("Looking up address..."):
         als_estate, district = geocode(address)
-    matched_key = match_estate(als_estate)
+    matched_key = match_estate(als_estate, covered_keys)
     if matched_key:
-        st.success(f"Recognized: **{ESTATES[matched_key]['name']}** ({district or ESTATES[matched_key]['district']}) — we have data for this estate.")
+        st.success(f"Recognized: **{estate_names[matched_key]}** ({district or ESTATES[matched_key]['district']}) — we have data for this estate.")
     elif district:
         st.warning(
-            f"That address is in **{district}**, but we don't have transaction data there yet. "
-            f"Currently covering: {', '.join(c['name'] for c in ESTATES.values())}."
+            f"That address is in **{district}**, but we don't have a reliable model there yet. "
+            f"Currently covering: {', '.join(estate_names.values())}."
         )
     else:
         st.warning("Couldn't resolve that address. Try a more specific one, or pick an estate below.")
 
-estate_names = {key: config["name"] for key, config in ESTATES.items()}
-default_index = list(estate_names.keys()).index(matched_key) if matched_key else 0
+default_index = covered_keys.index(matched_key) if matched_key else 0
 estate_key = st.selectbox(
     "Or choose an estate directly",
-    options=list(estate_names.keys()),
+    options=covered_keys,
     format_func=lambda k: estate_names[k],
     index=default_index,
 )
@@ -85,12 +98,12 @@ estate_key = st.selectbox(
 st.subheader("Listing details")
 col1, col2 = st.columns(2)
 with col1:
-    area = st.number_input("Saleable area (sq ft)", min_value=200, max_value=2000, value=500, step=1)
+    area = st.number_input("Saleable area (sq ft)", min_value=200, max_value=6000, value=500, step=1)
     floor = st.number_input("Floor", min_value=1, max_value=70, value=15, step=1)
 with col2:
     block_options = blocks_for(estate_key)
     block = st.selectbox("Block", block_options, format_func=lambda b: f"{b} ({block_label(estate_key, b)})")
-    asking_price = st.number_input("Asking price (HK$)", min_value=1_000_000, max_value=100_000_000, value=6_000_000, step=50_000)
+    asking_price = st.number_input("Asking price (HK$)", min_value=1_000_000, max_value=500_000_000, value=6_000_000, step=50_000)
 
 age = date.today().year - completion_year(estate_key, block)
 st.caption(f"{block_label(estate_key, block)} was completed in {completion_year(estate_key, block)}, making it {age} years old today.")
@@ -106,9 +119,8 @@ if out_of_range:
     )
 
 if st.button("Check this listing"):
-    is_taikoo_shing = 1 if estate_key == "taikoo_shing" else 0
-    is_mei_foo_sun_chuen = 1 if estate_key == "mei_foo_sun_chuen" else 0
-    X = [[area, floor, age, is_taikoo_shing, is_mei_foo_sun_chuen]]
+    model = models[estate_key]
+    X = [[area, floor, age]]
     fair_value = model.predict(X)[0]
     premium_hkd = asking_price - fair_value
     premium_pct = premium_hkd / fair_value * 100
@@ -122,35 +134,41 @@ if st.button("Check this listing"):
         delta_color="inverse",
     )
 
+    mae = MODEL_MAE_HKD[estate_key]
     st.caption(
-        f"This model is typically off by about HK${MODEL_MAE_HKD:,.0f} on a flat it "
-        "hasn't seen, so treat small premiums (roughly within that range) as noise, "
-        "not a real signal."
+        f"This model (fit only on {estate_names[estate_key]}'s own data) is typically off by "
+        f"about HK${mae:,.0f} on a flat it hasn't seen, so treat small premiums (roughly "
+        "within that range) as noise, not a real signal."
     )
     st.warning(
         "This premium is **not proof of overpricing**. It's whatever asking price isn't "
-        "explained by area, floor, building age, and which estate — which also includes "
-        "real things the model doesn't see, like renovation, view, or exact unit condition. "
-        "Use it as a prompt to look closer, not a verdict."
+        "explained by area, floor, and building age — which also includes real things the "
+        "model doesn't see, like renovation, view, or exact unit condition. Use it as a "
+        "prompt to look closer, not a verdict."
     )
 
 st.divider()
 with st.expander("How this works, and its limits"):
     st.write(
         """
-        The fair-value estimate comes from a linear regression trained on 1,663 real sold
-        transactions across three estates — City One Shatin, Taikoo Shing, and Mei Foo Sun
-        Chuen — each converted into current-market terms using the government's official
-        house price index for its own region, so market-wide ups and downs are already
-        stripped out before the model ever sees the price.
+        Each estate has its **own independent** regression, trained only on that estate's
+        own real sold transactions - not one shared formula across estates. An earlier
+        version tried one shared model with "which estate" as an extra input; it badly
+        over-predicted smaller estates in order to also fit Dynasty Court's much higher
+        prices (one flat came out with a *negative* predicted price). Separate models fixed
+        that, and also mean each one only needs 3 simple inputs: size, floor, and building
+        age.
 
-        The model knows five things about a flat: its size, its floor, the building's age,
-        and which of the three estates it's in. On held-out data it hasn't seen, it explains
-        roughly 75% of price variation (R² ≈ 0.75) and is typically accurate to within about
-        HK$900,000 — a wider margin than a single-estate model, since it now spans a much
-        bigger price range (City One Shatin to Taikoo Shing). See `LEARNING_LOG.md` and
-        `METHODOLOGY.md` in the project repo for the full build process and honest
-        limitations, including why the address lookup only works for these three estates
-        so far.
+        Every transaction was converted into current-market terms using the government's
+        official house price index for its own region and size class, before the model ever
+        saw the price - so market-wide ups and downs are already stripped out.
+
+        Accuracy genuinely differs by estate (see the note under each result) - some
+        estates have more data and tighter, more reliable estimates than others. One estate
+        we collected real data for, Repulse Bay Garden, was excluded entirely: with only 40
+        transactions available, its model had essentially no real predictive power (R² near
+        zero) - shown here honestly rather than shipped with false confidence. See
+        `LEARNING_LOG.md` and `METHODOLOGY.md` in the project repo for the full build
+        process and honest limitations.
         """
     )

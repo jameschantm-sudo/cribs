@@ -21,10 +21,17 @@ DEFAULT_INDEX_COLUMN = "Class B New Territories"
 
 
 def load_index(csv_path=INDEX_CSV_PATH, column=DEFAULT_INDEX_COLUMN):
-    """Load one column of the RVD CSV into a Series indexed by month."""
+    """Load one column of the RVD CSV into a Series indexed by month.
+
+    Rare, low-volume classes (e.g. Class E, the largest flats) sometimes have
+    a literal "-" for a month with too few sales to report - coerced to NaN
+    here rather than guessed, so a transaction from that exact month fails
+    loudly in index_at() instead of silently producing a wrong number.
+    """
     df = pd.read_csv(csv_path, skiprows=1)
     df["Month"] = pd.to_datetime(df["Month"], format="%m-%Y")
-    return df.set_index("Month")[column]
+    series = pd.to_numeric(df.set_index("Month")[column], errors="coerce")
+    return series
 
 
 def index_at(index_series, date):
@@ -41,7 +48,14 @@ def index_at(index_series, date):
             f"No RVD index value for {month.strftime('%Y-%m')}. "
             f"Data only covers {earliest:%Y-%m} to {latest:%Y-%m}."
         )
-    return index_series.loc[month]
+    value = index_series.loc[month]
+    if pd.isna(value):
+        raise ValueError(
+            f"RVD reported no data for {month.strftime('%Y-%m')} in this size "
+            f"class (too few sales that month to publish) - can't adjust a "
+            f"transaction from that month against it."
+        )
+    return value
 
 
 def adjust_price(price, sale_date, index_series, base_date=None):
