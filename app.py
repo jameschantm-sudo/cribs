@@ -1,3 +1,4 @@
+import csv
 import json
 import pickle
 import urllib.parse
@@ -20,6 +21,32 @@ MODEL_MAE_HKD = {
     "mei_foo_sun_chuen": 698_679,
     "dynasty_court": 8_189_785,
 }
+
+
+@st.cache_data
+def load_affordability():
+    """Per-estate affordability rows from affordability.py (data/affordability_table.csv),
+    keyed by estate display name. Returns {} if the file is missing - it's an extra, not core."""
+    try:
+        with open("data/affordability_table.csv", newline="") as f:
+            return {row["estate"]: row for row in csv.DictReader(f)}
+    except OSError:
+        return {}
+
+
+@st.cache_data
+def load_hos_summary():
+    """Median years-of-income and price per sq ft for newly built HOS courts, 2018-2024."""
+    try:
+        with open("data/hos_affordability_table.csv", newline="") as f:
+            rows = [r for r in csv.DictReader(f) if r["kind"] == "new court"]
+    except OSError:
+        return None
+    if not rows:
+        return None
+    years = sorted(float(r["years_of_hk_median_income"]) for r in rows)
+    psf = sorted(float(r["median_price_psf"]) for r in rows)
+    return years[len(years) // 2], psf[len(psf) // 2]
 
 
 @st.cache_resource
@@ -146,6 +173,28 @@ if st.button("Check this listing"):
         "model doesn't see, like renovation, view, or exact unit condition. Use it as a "
         "prompt to look closer, not a verdict."
     )
+
+    affordability = load_affordability().get(estate_names[estate_key])
+    if affordability:
+        income_pm = float(affordability["district_median_income_pm"])
+        st.subheader("Affordability")
+        st.metric(
+            "Asking price in years of district median household income",
+            f"{asking_price / (income_pm * 12):.1f} years",
+        )
+        typical = float(affordability["price_to_income_years"])
+        line = f"A typical flat here costs about {typical:.1f} years of that income"
+        hos = load_hos_summary()
+        if hos:
+            line += (
+                f", versus about {hos[0]:.1f} years for a newly built Home Ownership Scheme "
+                f"flat (median HK${hos[1]:,.0f}/sq ft, 2018-2024 first sales)"
+            )
+        st.caption(
+            line + ". District median income describes everyone in the district, not buyers "
+            "of this estate, and Home Ownership Scheme flats are discounted and income-restricted, "
+            "so this is a rough yardstick, not a buyer profile."
+        )
 
 st.divider()
 with st.expander("How this works, and its limits"):

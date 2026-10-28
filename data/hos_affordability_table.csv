@@ -1,0 +1,175 @@
+round,scheme_type,court,n_flats,median_price_hkd,median_area_sqft,median_price_psf,kind,years_of_hk_median_income
+HOS 2022 + HS SSF,HOS,CHEUNG FAT ESTATE,9,340000.0,164.0,1895.0,rental estate flats,0.9
+HOS 2022 + HS SSF,HOS,CHEUNG ON ESTATE,8,486000.0,349.0,1496.0,rental estate flats,1.4
+HOS 2022 + HS SSF,HOS,CHEUNG WAH ESTATE,20,324750.0,277.0,1165.0,rental estate flats,0.9
+HOS 2022 + HS SSF,HOS,CHIU MING COURT,594,2618200.0,383.0,6927.0,new court,7.3
+HOS 2022 + HS SSF,HOS,CHOI HA ESTATE,7,400900.0,208.0,1885.0,rental estate flats,1.1
+HOS 2022 + HS SSF,HOS,CHOI WO COURT,1,3453800.0,508.0,6798.0,new court,9.6
+HOS 2022 + HS SSF,HOS,CHUK YUEN (NORTH) ESTATE,16,676900.0,381.0,1767.0,rental estate flats,1.9
+HOS 2022 + HS SSF,HOS,FU HENG ESTATE,23,291800.0,208.0,1373.0,rental estate flats,0.8
+HOS 2022 + HS SSF,HOS,FU SHIN ESTATE,28,433200.0,292.0,1461.0,rental estate flats,1.2
+HOS 2022 + HS SSF,HOS,FUNG TAK ESTATE,15,536200.0,349.0,1811.0,rental estate flats,1.5
+HOS 2022 + HS SSF,HOS,FUNG WAH ESTATE,4,614800.0,376.0,1637.0,rental estate flats,1.7
+HOS 2022 + HS SSF,HOS,GREENHILL VILLA,11,4120000.0,580.0,7109.0,new court,11.4
+HOS 2022 + HS SSF,HOS,HENG ON ESTATE,4,576900.0,412.0,1320.0,rental estate flats,1.6
+HOS 2022 + HS SSF,HOS,HIN KENG ESTATE,2,744100.0,462.0,1604.0,rental estate flats,2.1
+HOS 2022 + HS SSF,HOS,HING TIN ESTATE,4,660750.0,443.0,1532.0,rental estate flats,1.8
+HOS 2022 + HS SSF,HOS,KAI YAN COURT,1840,2988750.0,378.0,8416.0,new court,8.3
+HOS 2022 + HS SSF,HOS,KEI WAH COURT,248,3688500.0,379.0,9780.0,new court,10.2
+HOS 2022 + HS SSF,HOS,KIN SANG ESTATE,2,325550.0,292.0,1112.0,rental estate flats,0.9
+HOS 2022 + HS SSF,HOS,KING LAM ESTATE,7,329900.0,208.0,1713.0,rental estate flats,0.9
+HOS 2022 + HS SSF,HOS,KWAI HING ESTATE,6,400000.0,254.0,1582.0,rental estate flats,1.1
+HOS 2022 + HS SSF,HOS,KWONG YUEN ESTATE,6,353300.0,241.0,1379.0,rental estate flats,1.0
+HOS 2022 + HS SSF,HOS,KWUN SHAN COURT,495,2782200.0,379.0,7693.0,new court,7.7
+HOS 2022 + HS SSF,HOS,LEI CHENG UK ESTATE,16,440650.0,277.0,1581.0,rental estate flats,1.2
+HOS 2022 + HS SSF,HOS,LEI TUNG ESTATE,11,543800.0,294.0,1784.0,rental estate flats,1.5
+HOS 2022 + HS SSF,HOS,LEUNG KING ESTATE,15,303200.0,264.0,1150.0,rental estate flats,0.8
+HOS 2022 + HS SSF,HOS,LONG PING ESTATE,19,422000.0,355.0,1179.0,rental estate flats,1.2
+HOS 2022 + HS SSF,HOS,LOWER WONG TAI SIN (1) ESTATE,19,512900.0,267.0,1870.0,rental estate flats,1.4
+HOS 2022 + HS SSF,HOS,MOUNT VERDANT,6,3316500.0,462.0,7725.0,new court,9.2
+HOS 2022 + HS SSF,HOS,NAM CHEONG ESTATE,4,638600.0,348.0,1947.0,rental estate flats,1.8
+HOS 2022 + HS SSF,HOS,ON SAU COURT,1906,2534350.0,384.0,6614.0,new court,7.0
+HOS 2022 + HS SSF,HOS,PO LAM ESTATE,4,472650.0,361.0,1321.0,rental estate flats,1.3
+HOS 2022 + HS SSF,HOS,POK HONG ESTATE,13,407600.0,283.0,1428.0,rental estate flats,1.1
+HOS 2022 + HS SSF,HOS,SHAN KING ESTATE,62,325800.0,294.0,1094.0,rental estate flats,0.9
+HOS 2022 + HS SSF,HOS,SHAN LAI COURT,14,1722850.0,378.0,4529.0,new court,4.8
+HOS 2022 + HS SSF,HOS,TAI PING ESTATE,1,678500.0,496.0,1367.0,rental estate flats,1.9
+HOS 2022 + HS SSF,HOS,TAI WO ESTATE,19,341900.0,234.0,1525.0,rental estate flats,0.9
+HOS 2022 + HS SSF,HOS,TAK TIN ESTATE,23,465600.0,265.0,1670.0,rental estate flats,1.3
+HOS 2022 + HS SSF,HOS,TERRACE CONCERTO,10,2635000.0,392.0,6715.0,new court,7.3
+HOS 2022 + HS SSF,HOS,TIN KING ESTATE,4,402600.0,371.0,1044.0,rental estate flats,1.1
+HOS 2022 + HS SSF,HOS,TIN PING ESTATE,6,445550.0,352.0,1342.0,rental estate flats,1.2
+HOS 2022 + HS SSF,HOS,TSING YI ESTATE,11,408800.0,264.0,1482.0,rental estate flats,1.1
+HOS 2022 + HS SSF,HOS,TSUI LAM ESTATE,5,548400.0,349.0,1487.0,rental estate flats,1.5
+HOS 2022 + HS SSF,HOS,TSUI PING (NORTH) ESTATE,58,404600.0,277.0,1479.0,rental estate flats,1.1
+HOS 2022 + HS SSF,HOS,TSUI WAN ESTATE,14,330800.0,208.0,1574.0,rental estate flats,0.9
+HOS 2022 + HS SSF,HOS,TUNG TAU (II) ESTATE,26,471700.0,267.0,1797.0,rental estate flats,1.3
+HOS 2022 + HS SSF,HOS,WAH KWAI ESTATE,6,398700.0,208.0,1826.0,rental estate flats,1.1
+HOS 2022 + HS SSF,HOS,WAH MING ESTATE,11,278000.0,264.0,1225.0,rental estate flats,0.8
+HOS 2022 + HS SSF,HOS,WAN TAU TONG ESTATE,7,322300.0,217.0,1370.0,rental estate flats,0.9
+HOS 2022 + HS SSF,HOS,YIU ON ESTATE,11,501400.0,357.0,1394.0,rental estate flats,1.4
+HOS 2022 + HS SSF,HOS,YU NGA COURT,3300,2330500.0,434.0,5725.0,new court,6.5
+HOS 2022 + HS SSF,HOS,YU TAK COURT,543,2636200.0,391.0,6819.0,new court,7.3
+Sale of Home Ownership Scheme Flats 2018,HOS,HOI LOK COURT,2522,2814800.0,394.0,6882.0,new court,7.8
+Sale of Home Ownership Scheme Flats 2018,HOS,KAI LONG COURT,683,2838200.0,384.0,7294.0,new court,7.9
+Sale of Home Ownership Scheme Flats 2018,HOS,YU TAI COURT,1226,1905250.0,381.0,4999.0,new court,5.3
+Sale of Home Ownership Scheme Flats 2019,HOS,CHOI HING COURT,19,2976700.0,385.0,7662.0,new court,8.3
+Sale of Home Ownership Scheme Flats 2019,HOS,HOI TAK COURT,814,3052050.0,393.0,7819.0,new court,8.5
+Sale of Home Ownership Scheme Flats 2019,HOS,KA SHUN COURT,1,2756600.0,445.0,6201.0,new court,7.7
+Sale of Home Ownership Scheme Flats 2019,HOS,KAM FAI COURT,735,2790500.0,381.0,7234.0,new court,7.8
+Sale of Home Ownership Scheme Flats 2019,HOS,KWUN TAK COURT,603,4487000.0,563.0,8564.0,new court,12.5
+Sale of Home Ownership Scheme Flats 2019,HOS,NGAN HO COURT,2,2044050.0,450.0,4543.0,new court,5.7
+Sale of Home Ownership Scheme Flats 2019,HOS,NGAN WAI COURT,2,1752600.0,411.0,4260.0,new court,4.9
+Sale of Home Ownership Scheme Flats 2019,HOS,PING YAN COURT,9,2011800.0,445.0,4955.0,new court,5.6
+Sale of Home Ownership Scheme Flats 2019,HOS,SHEUNG MAN COURT,494,2158750.0,295.0,7197.0,new court,6.0
+Sale of Home Ownership Scheme Flats 2019,HOS,YUK WO COURT,830,2611850.0,378.0,7036.0,new court,7.3
+Sale of Home Ownership Scheme Flats 2019,HOS,YUNG MING COURT,1395,2877200.0,382.0,7532.0,new court,8.0
+Sale of Home Ownership Scheme Flats 2020,HOS,CHOI WO COURT,806,3096550.0,439.0,7212.0,new court,8.6
+Sale of Home Ownership Scheme Flats 2020,HOS,HOI LOK COURT,6,3638050.0,439.0,8080.0,new court,10.1
+Sale of Home Ownership Scheme Flats 2020,HOS,HOI TAK COURT,8,3169650.0,385.0,8342.0,new court,8.8
+Sale of Home Ownership Scheme Flats 2020,HOS,KAI CHEUNG COURT,940,3836800.0,401.0,8936.0,new court,10.7
+Sale of Home Ownership Scheme Flats 2020,HOS,KAM CHUN COURT,2079,3144300.0,426.0,7463.0,new court,8.7
+Sale of Home Ownership Scheme Flats 2020,HOS,KAM FAI COURT,7,2905500.0,371.0,7611.0,new court,8.1
+Sale of Home Ownership Scheme Flats 2020,HOS,SHAN LAI COURT,3222,1983100.0,382.0,5211.0,new court,5.5
+Sale of Home Ownership Scheme Flats 2020,HOS,SHEUNG MAN COURT,4,2125700.0,291.0,7298.0,new court,5.9
+Sale of Home Ownership Scheme Flats 2020,HOS,YU TAI COURT,54,2322800.0,381.0,6054.0,new court,6.5
+Sale of Home Ownership Scheme Flats 2020,HOS,YUK WO COURT,6,3199500.0,454.0,7175.0,new court,8.9
+Sale of Home Ownership Scheme Flats 2020,HOS,YUNG MING COURT,10,2775950.0,377.0,8015.0,new court,7.7
+Sale of Home Ownership Scheme Flats 2023,HOS,CHEUNG FAT ESTATE,10,466350.0,241.0,1964.0,rental estate flats,1.3
+Sale of Home Ownership Scheme Flats 2023,HOS,CHEUNG ON ESTATE,11,506900.0,354.0,1559.0,rental estate flats,1.4
+Sale of Home Ownership Scheme Flats 2023,HOS,CHEUNG WAH ESTATE,6,439750.0,370.0,1191.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2023,HOS,CHOI HA ESTATE,8,420900.0,236.0,1850.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2023,HOS,CHUK YUEN (NORTH) ESTATE,7,515400.0,263.0,1775.0,rental estate flats,1.4
+Sale of Home Ownership Scheme Flats 2023,HOS,FU HENG ESTATE,8,573000.0,385.0,1434.0,rental estate flats,1.6
+Sale of Home Ownership Scheme Flats 2023,HOS,FU SHIN ESTATE,13,439900.0,294.0,1506.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2023,HOS,FUNG TAK ESTATE,8,426350.0,222.0,1842.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2023,HOS,FUNG WAH ESTATE,3,617600.0,376.0,1640.0,rental estate flats,1.7
+Sale of Home Ownership Scheme Flats 2023,HOS,HENG ON ESTATE,5,572700.0,381.0,1484.0,rental estate flats,1.6
+Sale of Home Ownership Scheme Flats 2023,HOS,HIN KENG ESTATE,1,573900.0,381.0,1506.0,rental estate flats,1.6
+Sale of Home Ownership Scheme Flats 2023,HOS,HING TIN ESTATE,1,803800.0,485.0,1656.0,rental estate flats,2.2
+Sale of Home Ownership Scheme Flats 2023,HOS,KAI CHEUNG COURT,15,3361900.0,401.0,8370.0,new court,9.3
+Sale of Home Ownership Scheme Flats 2023,HOS,KAI YUET COURT,2046,3597250.0,383.0,9380.0,new court,10.0
+Sale of Home Ownership Scheme Flats 2023,HOS,KAM CHUN COURT,36,2985050.0,426.0,7053.0,new court,8.3
+Sale of Home Ownership Scheme Flats 2023,HOS,KIN SANG ESTATE,4,449700.0,402.0,1115.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2023,HOS,KING LAM ESTATE,13,371300.0,217.0,1666.0,rental estate flats,1.0
+Sale of Home Ownership Scheme Flats 2023,HOS,KWAI HING ESTATE,3,672800.0,419.0,1573.0,rental estate flats,1.9
+Sale of Home Ownership Scheme Flats 2023,HOS,KWONG YUEN ESTATE,6,458050.0,320.0,1469.0,rental estate flats,1.3
+Sale of Home Ownership Scheme Flats 2023,HOS,LEI CHENG UK ESTATE,20,435550.0,277.0,1569.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2023,HOS,LEI TUNG ESTATE,22,510300.0,295.0,1720.0,rental estate flats,1.4
+Sale of Home Ownership Scheme Flats 2023,HOS,LEUNG KING ESTATE,17,401400.0,366.0,1171.0,rental estate flats,1.1
+Sale of Home Ownership Scheme Flats 2023,HOS,LONG PING ESTATE,25,414400.0,358.0,1168.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2023,HOS,LONG TIN COURT,3080,2484500.0,388.0,6298.0,new court,6.9
+Sale of Home Ownership Scheme Flats 2023,HOS,LOWER WONG TAI SIN (1) ESTATE,12,583450.0,312.0,1970.0,rental estate flats,1.6
+Sale of Home Ownership Scheme Flats 2023,HOS,NAM CHEONG ESTATE,13,689700.0,357.0,2045.0,rental estate flats,1.9
+Sale of Home Ownership Scheme Flats 2023,HOS,ON LAI COURT,1380,2818000.0,385.0,7259.0,new court,7.8
+Sale of Home Ownership Scheme Flats 2023,HOS,ON WAH COURT,990,2877900.0,407.0,7049.0,new court,8.0
+Sale of Home Ownership Scheme Flats 2023,HOS,ON YING COURT,1140,2896400.0,391.0,7348.0,new court,8.0
+Sale of Home Ownership Scheme Flats 2023,HOS,PO LAM ESTATE,5,462600.0,366.0,1326.0,rental estate flats,1.3
+Sale of Home Ownership Scheme Flats 2023,HOS,POK HONG ESTATE,9,420200.0,283.0,1444.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2023,HOS,SHAN KING ESTATE,57,319300.0,296.0,1071.0,rental estate flats,0.9
+Sale of Home Ownership Scheme Flats 2023,HOS,SIU TSUI COURT,518,2579500.0,383.0,6816.0,new court,7.2
+Sale of Home Ownership Scheme Flats 2023,HOS,TAI PING ESTATE,1,514000.0,428.0,1200.0,rental estate flats,1.4
+Sale of Home Ownership Scheme Flats 2023,HOS,TAI WO ESTATE,17,630900.0,381.0,1641.0,rental estate flats,1.8
+Sale of Home Ownership Scheme Flats 2023,HOS,TAK TIN ESTATE,13,702700.0,376.0,1651.0,rental estate flats,2.0
+Sale of Home Ownership Scheme Flats 2023,HOS,TIN KING ESTATE,5,394500.0,355.0,1131.0,rental estate flats,1.1
+Sale of Home Ownership Scheme Flats 2023,HOS,TIN PING ESTATE,4,538450.0,381.0,1395.0,rental estate flats,1.5
+Sale of Home Ownership Scheme Flats 2023,HOS,TSING YI ESTATE,1,385800.0,264.0,1463.0,rental estate flats,1.1
+Sale of Home Ownership Scheme Flats 2023,HOS,TSUI LAM ESTATE,17,538300.0,355.0,1509.0,rental estate flats,1.5
+Sale of Home Ownership Scheme Flats 2023,HOS,TSUI PING (NORTH) ESTATE,22,483850.0,277.0,1552.0,rental estate flats,1.3
+Sale of Home Ownership Scheme Flats 2023,HOS,TSUI WAN ESTATE,8,342500.0,208.0,1649.0,rental estate flats,1.0
+Sale of Home Ownership Scheme Flats 2023,HOS,TUNG TAU (II) ESTATE,16,545100.0,358.0,1786.0,rental estate flats,1.5
+Sale of Home Ownership Scheme Flats 2023,HOS,WAH KWAI ESTATE,11,623300.0,376.0,1831.0,rental estate flats,1.7
+Sale of Home Ownership Scheme Flats 2023,HOS,WAH MING ESTATE,4,418600.0,319.0,1304.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2023,HOS,WAN TAU TONG ESTATE,3,235100.0,164.0,1408.0,rental estate flats,0.7
+Sale of Home Ownership Scheme Flats 2023,HOS,YIU ON ESTATE,3,625200.0,385.0,1578.0,rental estate flats,1.7
+Sale of Home Ownership Scheme Flats 2023,HOS,YU NGA COURT,6,2207300.0,374.0,6080.0,new court,6.1
+Sale of Home Ownership Scheme Flats 2023,HOS,YU TAK COURT,4,2634550.0,375.0,7439.0,new court,7.3
+Sale of Home Ownership Scheme Flats 2024,HOS,CHEUNG FAT ESTATE,7,561000.0,264.0,1946.0,rental estate flats,1.6
+Sale of Home Ownership Scheme Flats 2024,HOS,CHEUNG ON ESTATE,5,704200.0,443.0,1596.0,rental estate flats,2.0
+Sale of Home Ownership Scheme Flats 2024,HOS,CHEUNG WAH ESTATE,8,355600.0,277.0,1274.0,rental estate flats,1.0
+Sale of Home Ownership Scheme Flats 2024,HOS,CHIU MING COURT,32,2856150.0,389.0,7652.0,new court,7.9
+Sale of Home Ownership Scheme Flats 2024,HOS,CHOI HA ESTATE,9,643300.0,376.0,1835.0,rental estate flats,1.8
+Sale of Home Ownership Scheme Flats 2024,HOS,CHUK YUEN (NORTH) ESTATE,7,713100.0,381.0,1789.0,rental estate flats,2.0
+Sale of Home Ownership Scheme Flats 2024,HOS,FU HENG ESTATE,7,527400.0,374.0,1441.0,rental estate flats,1.5
+Sale of Home Ownership Scheme Flats 2024,HOS,FU SHIN ESTATE,20,450050.0,292.0,1531.0,rental estate flats,1.3
+Sale of Home Ownership Scheme Flats 2024,HOS,FUNG TAK ESTATE,8,599300.0,351.0,1792.0,rental estate flats,1.7
+Sale of Home Ownership Scheme Flats 2024,HOS,HENG ON ESTATE,3,497900.0,349.0,1428.0,rental estate flats,1.4
+Sale of Home Ownership Scheme Flats 2024,HOS,HIN KENG ESTATE,5,608400.0,381.0,1597.0,rental estate flats,1.7
+Sale of Home Ownership Scheme Flats 2024,HOS,HING TIN ESTATE,2,755500.0,443.0,1704.0,rental estate flats,2.1
+Sale of Home Ownership Scheme Flats 2024,HOS,KAI YAN COURT,81,2550800.0,285.0,9045.0,new court,7.1
+Sale of Home Ownership Scheme Flats 2024,HOS,KAI YING COURT,1736,2716100.0,286.0,9251.0,new court,7.5
+Sale of Home Ownership Scheme Flats 2024,HOS,KAM CHUN COURT,1,2848500.0,418.0,6820.0,new court,7.9
+Sale of Home Ownership Scheme Flats 2024,HOS,KEI WAH COURT,9,3895700.0,379.0,10282.0,new court,10.8
+Sale of Home Ownership Scheme Flats 2024,HOS,KIN SANG ESTATE,4,246600.0,208.0,1187.0,rental estate flats,0.7
+Sale of Home Ownership Scheme Flats 2024,HOS,KING LAM ESTATE,13,494700.0,264.0,1870.0,rental estate flats,1.4
+Sale of Home Ownership Scheme Flats 2024,HOS,KO HEI COURT,864,2963500.0,384.0,7620.0,new court,8.2
+Sale of Home Ownership Scheme Flats 2024,HOS,KWAI HING ESTATE,3,593500.0,377.0,1575.0,rental estate flats,1.6
+Sale of Home Ownership Scheme Flats 2024,HOS,KWONG YUEN ESTATE,15,589900.0,376.0,1609.0,rental estate flats,1.6
+Sale of Home Ownership Scheme Flats 2024,HOS,KWUN SHAN COURT,25,2986100.0,380.0,8330.0,new court,8.3
+Sale of Home Ownership Scheme Flats 2024,HOS,LEI CHENG UK ESTATE,14,465900.0,277.0,1681.0,rental estate flats,1.3
+Sale of Home Ownership Scheme Flats 2024,HOS,LEI TUNG ESTATE,14,531150.0,294.0,1825.0,rental estate flats,1.5
+Sale of Home Ownership Scheme Flats 2024,HOS,LEUNG KING ESTATE,23,380700.0,349.0,1298.0,rental estate flats,1.1
+Sale of Home Ownership Scheme Flats 2024,HOS,LONG PING ESTATE,13,450400.0,366.0,1239.0,rental estate flats,1.3
+Sale of Home Ownership Scheme Flats 2024,HOS,LOWER WONG TAI SIN (1) ESTATE,12,726250.0,367.0,2047.0,rental estate flats,2.0
+Sale of Home Ownership Scheme Flats 2024,HOS,NAM CHEONG ESTATE,3,724200.0,357.0,2056.0,rental estate flats,2.0
+Sale of Home Ownership Scheme Flats 2024,HOS,ON PAK COURT,420,2858300.0,408.0,7040.0,new court,7.9
+Sale of Home Ownership Scheme Flats 2024,HOS,ON SAU COURT,168,2625200.0,384.0,7000.0,new court,7.3
+Sale of Home Ownership Scheme Flats 2024,HOS,PO LAM ESTATE,12,513750.0,366.0,1425.0,rental estate flats,1.4
+Sale of Home Ownership Scheme Flats 2024,HOS,POK HONG ESTATE,6,437300.0,277.0,1556.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2024,HOS,SHAN KING ESTATE,64,334600.0,294.0,1124.0,rental estate flats,0.9
+Sale of Home Ownership Scheme Flats 2024,HOS,SIU TSUI COURT,16,2577000.0,383.0,6681.0,new court,7.2
+Sale of Home Ownership Scheme Flats 2024,HOS,SIU WU COURT,2768,2355500.0,395.0,5933.0,new court,6.5
+Sale of Home Ownership Scheme Flats 2024,HOS,TAI WO ESTATE,6,613150.0,396.0,1690.0,rental estate flats,1.7
+Sale of Home Ownership Scheme Flats 2024,HOS,TAK TIN ESTATE,16,503050.0,265.0,1798.0,rental estate flats,1.4
+Sale of Home Ownership Scheme Flats 2024,HOS,TIN KING ESTATE,4,376600.0,355.0,1060.0,rental estate flats,1.0
+Sale of Home Ownership Scheme Flats 2024,HOS,TIN PING ESTATE,6,538000.0,368.0,1455.0,rental estate flats,1.5
+Sale of Home Ownership Scheme Flats 2024,HOS,TSING YI ESTATE,2,607550.0,381.0,1594.0,rental estate flats,1.7
+Sale of Home Ownership Scheme Flats 2024,HOS,TSUI LAM ESTATE,12,566300.0,355.0,1594.0,rental estate flats,1.6
+Sale of Home Ownership Scheme Flats 2024,HOS,TSUI PING (NORTH) ESTATE,39,437800.0,277.0,1559.0,rental estate flats,1.2
+Sale of Home Ownership Scheme Flats 2024,HOS,TSUI WAN ESTATE,5,622700.0,376.0,1658.0,rental estate flats,1.7
+Sale of Home Ownership Scheme Flats 2024,HOS,TUNG TAU (II) ESTATE,21,513800.0,277.0,1954.0,rental estate flats,1.4
+Sale of Home Ownership Scheme Flats 2024,HOS,WAH KWAI ESTATE,3,382900.0,208.0,1843.0,rental estate flats,1.1
+Sale of Home Ownership Scheme Flats 2024,HOS,WAH MING ESTATE,9,358600.0,264.0,1360.0,rental estate flats,1.0
+Sale of Home Ownership Scheme Flats 2024,HOS,WAN TAU TONG ESTATE,5,652900.0,445.0,1471.0,rental estate flats,1.8
+Sale of Home Ownership Scheme Flats 2024,HOS,YIU ON ESTATE,2,503500.0,360.0,1399.0,rental estate flats,1.4
+Sale of Home Ownership Scheme Flats 2024,HOS,YU HING COURT,1344,2487500.0,394.0,6248.0,new court,6.9
