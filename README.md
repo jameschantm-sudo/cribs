@@ -30,6 +30,10 @@ today, for what it is?" — never "will prices rise?"
    figures out which covered estate it's in — or tells you plainly if it isn't one we cover
    yet, rather than guessing.
 
+After a result, the app also shows an **affordability** view: the asking price in years of
+the district's median household income, next to a benchmark from newly built Home Ownership
+Scheme flats (Housing Authority first-sale data). See `METHODOLOGY.md`, "Affordability".
+
 Full details, honest results, and limitations: see [`METHODOLOGY.md`](METHODOLOGY.md).
 The stage-by-stage build process (what was built, why, and what would break it): see
 [`LEARNING_LOG.md`](LEARNING_LOG.md).
@@ -53,8 +57,11 @@ clean_and_adjust.py      Cleans data, applies each estate's own price-index adju
 train_model.py           Fits and evaluates one independent model per estate, saves model.pkl
 estate_info.py           Reference data for every estate (blocks, ages, districts, index columns)
 index_adjust.py          RVD price-index lookup and adjustment math
+affordability.py         Price-to-income tables (Census income, Housing Authority HOS data)
 app.py                   The Streamlit app — address lookup, inputs, prediction
 data/                    Raw and cleaned datasets, plus saved HTML snapshots for audit
+                         (data/ha_raw/, ~85MB of Housing Authority files, is git-ignored;
+                         re-download from data.housingauthority.gov.hk to rebuild the HOS table)
 model.pkl                The trained, saved per-estate regression models
 ```
 

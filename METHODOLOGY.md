@@ -195,6 +195,36 @@ among its own real sales is explained by size, floor, and age alone. The unexpla
 remainder is exactly the space this tool is built to expose as a "premium" — but see the
 limitations below before treating that number as a clean measurement of subjective premium.
 
+## Affordability
+
+`affordability.py` adds a yardstick next to the price check: how many years of household
+income a flat costs.
+
+- **Estates we model:** median index-adjusted price divided by the district's median monthly
+  household income x 12 (Census & Statistics Dept table 130-06806, 2025, General Household
+  Survey). Also shown after a 30% (Home Ownership Scheme) and 40% (Green Form) discount, and
+  against the public rental housing income limit for 4 people. Output: `data/affordability_table.csv`.
+- **Housing Authority first sales:** six Home Ownership Scheme rounds (2018-2024, about 43,000
+  flats) from the Housing Authority's open data. Output: `data/hos_affordability_table.csv`,
+  one row per court per round. Newly built courts come to about 7.5-8.6 years of income and
+  about HK$6,900-7,500 per sq ft.
+
+Limits, plainly:
+
+- District median income describes everyone in the district, not buyers of a given estate. It
+  is a rough yardstick, not a buyer profile. Dynasty Court (about 124 years) shows how far a
+  luxury estate sits from any district median.
+- HOS prices are discounted first-sale prices, not market prices, and HOS buyers face their
+  own income limits, which are not modelled. They are not used to train the pricing models.
+- The Housing Authority files carry no district per court, so their years-of-income figure uses
+  the territory-wide median (HK$30,000 a month).
+- The 2022 onwards files also include old public-rental-estate flats at about HK$0.3-0.7M.
+  They are separated from new courts by the word "ESTATE" in the name, a heuristic that has
+  not been checked court by court.
+- Green Form (GSH) first-sale files were not found under the Housing Authority's export
+  naming, so only HOS rounds are included. Home Ownership Scheme resale records are published
+  as a search page with no bulk download, so they are not included either.
+
 ## Limitations, stated plainly
 
 - **Only four estates ship.** The address lookup can recognize any real Hong Kong address,
@@ -265,3 +295,9 @@ larger, properly scoped data collection effort. Getting Repulse Bay Garden (or a
 small estate) to a reliable sample size would also need a fundamentally different data
 source, since 28hse's free history only goes back to 2018 and the estate itself only has 240
 units — there may not be much more real data to collect at all, regardless of effort spent.
+
+A larger source of transaction data would change what is possible. Centanet's public
+transaction pages hold far more records than 28hse, but their terms of use have not been
+confirmed and the data loads through JavaScript. An enquiry to Centaline's data bank asking
+about non-commercial use was sent on 2026-10-28; until there is an answer, no bulk collection
+from Centanet has been done.
