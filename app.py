@@ -16,10 +16,10 @@ ALS_URL = "https://www.als.gov.hk/lookup"
 # per-estate cross-validation (see LEARNING_LOG.md). Reported per estate,
 # not as one shared number, since they genuinely differ a lot.
 MODEL_MAE_HKD = {
-    "city_one_shatin": 454_501,
-    "taikoo_shing": 1_167_952,
-    "mei_foo_sun_chuen": 698_679,
-    "dynasty_court": 8_189_785,
+    "city_one_shatin": 336_301,
+    "taikoo_shing": 752_514,
+    "mei_foo_sun_chuen": 573_863,
+    "dynasty_court": 7_851_391,
 }
 
 

@@ -17,7 +17,9 @@ today, for what it is?" — never "will prices rise?"
 1. Collected 1,912 real sold transactions across five estates from public listing data,
    2018–2026 (one estate, Repulse Bay Garden, was excluded from the app itself — too few
    real transactions to model reliably; see `METHODOLOGY.md`).
-2. Converted every sold price into "today's market terms" using Hong Kong's official house
+2. Removed non-market sales — partial-share transfers, bulk investor purchases, duplicates —
+   with a documented rule (`outlier_rule.py`, 88 of 1,872 rows), then converted every sold
+   price into "today's market terms" using Hong Kong's official house
    price index (Rating and Valuation Department) — matched to each estate's own real region
    and size class, so sales from different years, estates, and price tiers all become
    directly comparable.
@@ -53,7 +55,8 @@ streamlit run app.py
 
 ```
 collect_data.py         Scrapes raw transactions from 28hse, for any configured estate
-clean_and_adjust.py      Cleans data, applies each estate's own price-index adjustment
+outlier_rule.py         Drops non-market sales (partial shares, bulk batches), logging each reason
+clean_and_adjust.py      Cleans data, applies the outlier rule and each estate's own price-index adjustment
 train_model.py           Fits and evaluates one independent model per estate, saves model.pkl
 estate_info.py           Reference data for every estate (blocks, ages, districts, index columns)
 index_adjust.py          RVD price-index lookup and adjustment math

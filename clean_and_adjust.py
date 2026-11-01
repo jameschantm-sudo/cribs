@@ -15,6 +15,7 @@ import pandas as pd
 
 from estate_info import ESTATES
 from index_adjust import load_index, adjust_price
+from outlier_rule import clean
 
 RAW_CSV = "data/all_estates_transactions.csv"
 OUTPUT_CSV = "data/all_estates_modeling_ready.csv"
@@ -36,6 +37,22 @@ def clean_and_adjust():
     )
     df = df[plausible]
     dropped = before - len(df)
+
+    # Partial-share transfers, bulk investor purchases and the like are not independent
+    # market sales; see outlier_rule.py. Repulse Bay Garden is left alone - it is excluded
+    # from the shipped app anyway, and its 40 rows are too few for a local-median rule.
+    rule_input = pd.DataFrame({
+        "estate": df["estate"], "date": pd.to_datetime(df["sale_date"]),
+        "building": df["block"].astype(str), "floor": df["floor"].astype(str),
+        "floor_num": df["floor"], "price": df["price_hkd"].astype(float),
+        "area": df["saleable_area_sqft"].astype(float),
+    })
+    rule_input["psf"] = rule_input["price"] / rule_input["area"]
+    _, rule_dropped = clean(rule_input[rule_input["estate"] != "repulse_bay_garden"])
+    print("Outlier rule dropped:")
+    print(rule_dropped.groupby(["estate", "reason"]).size().to_string())
+    df = df.drop(index=rule_dropped.index)
+    rule_count = len(rule_dropped)
 
     df["sale_year"] = pd.to_datetime(df["sale_date"]).dt.year
 
@@ -74,6 +91,7 @@ def clean_and_adjust():
     result.to_csv(OUTPUT_CSV, index=False)
 
     print(f"Started with {before} rows, dropped {dropped} as implausible, "
+          f"dropped {rule_count} by the outlier rule, "
           f"dropped {too_recent_count} as more recent than the index can adjust, "
           f"dropped {unindexed_month_count} whose month has no RVD data for that class, "
           f"{len(result)} rows written to {OUTPUT_CSV}")

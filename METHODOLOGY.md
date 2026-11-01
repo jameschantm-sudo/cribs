@@ -164,17 +164,26 @@ Forcing one shared slope across an 8x price range was the error, not the estate 
 Accuracy is reported **per estate** — they genuinely differ, and averaging them into one
 number would hide that:
 
-| Estate | Rows | R² (cross-validated) | MAE (cross-validated) |
+| Estate | Rows (after cleaning) | R² (cross-validated) | MAE (cross-validated) |
 |---|---|---|---|
-| City One Shatin | 678 | ≈0.69 (range 0.60–0.84) | ≈HK$455,000 |
-| Mei Foo Sun Chuen | 247 | ≈0.58 (range 0.41–0.77) | ≈HK$699,000 |
-| Taikoo Shing | 738 | ≈0.42 (range 0.23–0.54) | ≈HK$1,168,000 |
-| Dynasty Court | 189 | ≈0.80 (range 0.69–0.87) | ≈HK$8,190,000 |
+| City One Shatin | 662 | ≈0.88 (range 0.85–0.91) | ≈HK$336,000 |
+| Taikoo Shing | 684 | ≈0.77 (range 0.69–0.85) | ≈HK$753,000 |
+| Mei Foo Sun Chuen | 241 | ≈0.75 (range 0.68–0.82) | ≈HK$574,000 |
+| Dynasty Court | 178 | ≈0.79 (range 0.76–0.82) | ≈HK$7,850,000 |
 | ~~Repulse Bay Garden~~ | 40 | ≈0.08 (range **-0.39 to +0.61**) | ≈HK$14,800,000 — **excluded, see below** |
+
+These figures are higher than the first version of this project reported (R² ≈ 0.42–0.80,
+MAE ≈ HK$455,000 / 699,000 / 1,168,000 / 8,190,000 for City One Shatin / Mei Foo Sun Chuen /
+Taikoo Shing / Dynasty Court). The difference is mostly **cleaning, and part of it flatters
+the numbers**: removing non-market sales (next section) takes noisy rows out of the models'
+training data *and out of the cross-validation test folds*, so the two sets of figures were
+measured on different rows and are not a like-for-like improvement. Because the old and new
+test rows differ, treat the cleaned figures as "accuracy on ordinary market sales," which is
+what a normal asking price is compared against, not as proof the model got that much better.
 
 MAE scales with each estate's own price level (Dynasty Court's absolute dollar error is
 much larger than City One Shatin's, in *proportion* they're more comparable — roughly
-10-13% for most estates).
+6–11% of the estate's average price).
 
 **Why Repulse Bay Garden isn't shipped**: with only 40 real transactions to learn from,
 cross-validation R² ranges from clearly negative (worse than just guessing the average) to
@@ -184,9 +193,9 @@ anyway with a confident-looking number would misrepresent what the model actuall
 **A coefficient that looked wrong on Dynasty Court, investigated rather than dismissed**:
 its age coefficient came out positive (older → pricier), unlike every other estate. Dynasty
 Court was built all at once (1991), so its real age range across all sales is narrow
-(~27–35 years) — with limited genuine variation to learn from and only 189 rows, some
+(~27–35 years) — with limited genuine variation to learn from and only 178 rows, some
 coefficient instability is plausible without meaning the whole model is broken; its overall
-cross-validated accuracy (R² ≈ 0.80) remains genuinely good. Worth flagging, not worth
+cross-validated accuracy (R² ≈ 0.79) remains genuinely good. Worth flagging, not worth
 panicking over — the lesson from the Mei Foo Sun Chuen case in Phase 2, Stage 2 still
 applies: individual coefficients can mislead even in a well-behaved model.
 
@@ -194,6 +203,30 @@ applies: individual coefficients can mislead even in a well-behaved model.
 among its own real sales is explained by size, floor, and age alone. The unexplained
 remainder is exactly the space this tool is built to expose as a "premium" — but see the
 limitations below before treating that number as a clean measurement of subjective premium.
+
+## Removing non-market sales
+
+`outlier_rule.py` drops records that are not independent market sales, each with one logged
+reason, before prices are index-adjusted and models fit:
+
+1. **No exact floor** — the model needs a number.
+2. **Exact duplicate** — same date, building, floor, price and area.
+3. **Bulk same-day batch** — 8 or more deals in one building on one day, or 15 or more in
+   one estate. These look like investor block purchases (Taikoo Shing: 24 flats on
+   2025-05-27; Dynasty Court Tower 2: 11 flats on 2022-10-06), priced differently from
+   ordinary resales.
+4. **Price-per-sq-ft outlier** — under 0.5× or over 2.5× the median for the same estate
+   within ±120 days. This catches partial-share and family transfers recorded at a fraction
+   of value (for example HK$1.65M for a 760 sq ft flat). The upper bound is deliberately
+   loose: the errors in this data are all on the low side, and real top-floor units sell
+   far above their estate's median.
+
+On the 1,872 rows of the four shipped estates it removed 88 (16 City One Shatin, 7 Mei Foo
+Sun Chuen, 54 Taikoo Shing, 11 Dynasty Court). Limits: the rule is a heuristic, so it can
+remove a genuine unusual sale and keep a subtle bad one; its thresholds were set by looking
+at price-per-sq-ft patterns, including in a separate privately held sample that is not
+used in training and is not part of this repository; and Repulse Bay Garden is excluded from
+the rule because its 40 rows are too few for a local median.
 
 ## Affordability
 
@@ -238,10 +271,9 @@ Limits, plainly:
 - **Individual coefficients can mislead**, especially on smaller estates with narrow feature
   variation (see Dynasty Court above) — the model's actual predictions on realistic inputs
   are what's trustworthy, not any single coefficient read in isolation.
-- **Accuracy varies a lot by estate** (R² from ≈0.42 to ≈0.80 among shipped estates) — more
-  data and more homogeneous buildings help; Taikoo Shing's lower R² likely reflects its
-  greater structural diversity (9 construction phases over more than a decade) compared to,
-  say, Dynasty Court's single-phase build.
+- **Accuracy varies a lot by estate** (R² from ≈0.75 to ≈0.88 among shipped estates) — Mei Foo
+  Sun Chuen, with the fewest rows (241) and the widest spread of fold scores, is the least
+  certain; more data and more homogeneous buildings help.
 - **Individual transaction prices carry the source's own rounding.** 28hse displays prices
   like "$4.85M," which may be off by up to ~HK$10,000 from the exact transacted figure — a
   real limit of the public data, not something this project introduced.
@@ -299,5 +331,7 @@ units — there may not be much more real data to collect at all, regardless of 
 A larger source of transaction data would change what is possible. Centanet's public
 transaction pages hold far more records than 28hse, but their terms of use have not been
 confirmed and the data loads through JavaScript. An enquiry to Centaline's data bank asking
-about non-commercial use was sent on 2026-10-28; until there is an answer, no bulk collection
-from Centanet has been done.
+about non-commercial use was sent on 2026-10-28; until there is an answer, nothing collected from
+Centanet is in this repository or in the deployed app. A private, local-only comparison
+using records from Centanet's pages was run for evaluation; its raw files are git-ignored, and
+the models trained on it are kept out of the app.
