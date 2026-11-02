@@ -288,7 +288,12 @@ Limits, plainly:
   that would grow if the underlying data isn't refreshed periodically.
 - **The app inputs allow, but flag, values outside what was actually observed** for the
   chosen estate — shown as a warning rather than blocked, since the estimate becomes an
-  extrapolation beyond the real training data at that point.
+  extrapolation beyond the real training data at that point. The one exception: a
+  straight-line model can extrapolate to zero or a negative price for a flat far smaller than
+  any it was fit on (Dynasty Court at 500 sq ft did). If the estimate is non-positive, or under
+  half the model's own estimate for the smallest, lowest flat it has seen, the app shows no
+  fair value or premium and says why. The form also opens on each estate's median flat, not
+  a fixed 500 sq ft.
 
 ## Scope decisions worth being upfront about
 

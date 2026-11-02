@@ -49,6 +49,23 @@ def load_hos_summary():
     return years[len(years) // 2], psf[len(psf) // 2]
 
 
+@st.cache_data
+def typical_flat(estate_key):
+    """Median (area, floor) of the estate's cleaned sales, used as the form's starting point so
+    it opens on a flat that actually exists there. Falls back to the middle of the observed
+    range if the data file is missing."""
+    try:
+        with open("data/all_estates_modeling_ready.csv", newline="") as f:
+            rows = [r for r in csv.DictReader(f) if r["estate"] == estate_key]
+        areas = sorted(float(r["saleable_area_sqft"]) for r in rows)
+        floors = sorted(float(r["floor"]) for r in rows)
+        return int(areas[len(areas) // 2]), int(floors[len(floors) // 2])
+    except (OSError, IndexError, KeyError, ValueError):
+        area_lo, area_hi = OBSERVED_RANGES[estate_key]["area"]
+        floor_lo, floor_hi = OBSERVED_RANGES[estate_key]["floor"]
+        return (area_lo + area_hi) // 2, (floor_lo + floor_hi) // 2
+
+
 @st.cache_resource
 def load_models():
     with open(MODEL_PATH, "rb") as f:
@@ -122,21 +139,42 @@ estate_key = st.selectbox(
     index=default_index,
 )
 
+area_range = OBSERVED_RANGES[estate_key]["area"]
+floor_range = OBSERVED_RANGES[estate_key]["floor"]
+
+
+def default_asking_price(estate_key):
+    """A typical asking price for the estate (model estimate for its median flat in its first
+    block), so the form never opens on a mismatched number like HK$6M for a Dynasty Court flat.
+    Depends only on the estate, so the field is not reset by other inputs."""
+    area0, floor0 = typical_flat(estate_key)
+    age0 = date.today().year - completion_year(estate_key, blocks_for(estate_key)[0])
+    estimate = models[estate_key].predict([[area0, floor0, age0]])[0]
+    return int(min(max(round(estimate, -5), 1_000_000), 500_000_000))
+
+
 st.subheader("Listing details")
 col1, col2 = st.columns(2)
 with col1:
-    area = st.number_input("Saleable area (sq ft)", min_value=200, max_value=6000, value=500, step=1)
-    floor = st.number_input("Floor", min_value=1, max_value=70, value=15, step=1)
+    area = st.number_input(
+        "Saleable area (sq ft)", min_value=200, max_value=6000,
+        value=min(max(typical_flat(estate_key)[0], 200), 6000), step=1,
+    )
+    floor = st.number_input(
+        "Floor", min_value=1, max_value=70,
+        value=min(max(typical_flat(estate_key)[1], 1), 70), step=1,
+    )
 with col2:
     block_options = blocks_for(estate_key)
     block = st.selectbox("Block", block_options, format_func=lambda b: f"{b} ({block_label(estate_key, b)})")
-    asking_price = st.number_input("Asking price (HK$)", min_value=1_000_000, max_value=500_000_000, value=6_000_000, step=50_000)
+    asking_price = st.number_input(
+        "Asking price (HK$)", min_value=1_000_000, max_value=500_000_000,
+        value=default_asking_price(estate_key), step=50_000,
+    )
 
 age = date.today().year - completion_year(estate_key, block)
 st.caption(f"{block_label(estate_key, block)} was completed in {completion_year(estate_key, block)}, making it {age} years old today.")
 
-area_range = OBSERVED_RANGES[estate_key]["area"]
-floor_range = OBSERVED_RANGES[estate_key]["floor"]
 out_of_range = area < area_range[0] or area > area_range[1] or floor < floor_range[0] or floor > floor_range[1]
 if out_of_range:
     st.warning(
@@ -149,30 +187,46 @@ if st.button("Check this listing"):
     model = models[estate_key]
     X = [[area, floor, age]]
     fair_value = model.predict(X)[0]
-    premium_hkd = asking_price - fair_value
-    premium_pct = premium_hkd / fair_value * 100
+
+    # A straight-line model can extrapolate to zero or below for a flat far smaller than any it
+    # was fit on. Compare against its own estimate for the smallest, lowest flat it has actually
+    # seen; far below that (or non-positive) means no meaningful estimate, so show none.
+    corners = [[a, f, age] for a in area_range for f in floor_range]
+    in_range_floor = min(model.predict(corners))
+    reliable = fair_value > 0 and fair_value >= 0.5 * in_range_floor
 
     st.subheader("Result")
-    st.metric("Objective fair-value estimate", f"HK${fair_value:,.0f}")
-    st.metric(
-        "Premium over fair value",
-        f"HK${premium_hkd:,.0f}",
-        f"{premium_pct:+.1f}%",
-        delta_color="inverse",
-    )
+    if not reliable:
+        st.error(
+            f"No reliable estimate: {area:,} sq ft on floor {floor} is too far outside what "
+            f"{estate_names[estate_key]}'s model was fit on (area {area_range[0]:,}-{area_range[1]:,} "
+            f"sq ft, floor {floor_range[0]}-{floor_range[1]}), and a straight-line model would "
+            "extrapolate to an unrealistic price. Try a size and floor within that range."
+        )
+    else:
+        premium_hkd = asking_price - fair_value
+        premium_pct = premium_hkd / fair_value * 100
 
-    mae = MODEL_MAE_HKD[estate_key]
-    st.caption(
-        f"This model (fit only on {estate_names[estate_key]}'s own data) is typically off by "
-        f"about HK${mae:,.0f} on a flat it hasn't seen, so treat small premiums (roughly "
-        "within that range) as noise, not a real signal."
-    )
-    st.warning(
-        "This premium is **not proof of overpricing**. It's whatever asking price isn't "
-        "explained by area, floor, and building age — which also includes real things the "
-        "model doesn't see, like renovation, view, or exact unit condition. Use it as a "
-        "prompt to look closer, not a verdict."
-    )
+        st.metric("Objective fair-value estimate", f"HK${fair_value:,.0f}")
+        st.metric(
+            "Premium over fair value",
+            f"HK${premium_hkd:,.0f}",
+            f"{premium_pct:+.1f}%",
+            delta_color="inverse",
+        )
+
+        mae = MODEL_MAE_HKD[estate_key]
+        st.caption(
+            f"This model (fit only on {estate_names[estate_key]}'s own data) is typically off by "
+            f"about HK${mae:,.0f} on a flat it hasn't seen, so treat small premiums (roughly "
+            "within that range) as noise, not a real signal."
+        )
+        st.warning(
+            "This premium is **not proof of overpricing**. It's whatever asking price isn't "
+            "explained by area, floor, and building age — which also includes real things the "
+            "model doesn't see, like renovation, view, or exact unit condition. Use it as a "
+            "prompt to look closer, not a verdict."
+        )
 
     affordability = load_affordability().get(estate_names[estate_key])
     if affordability:
