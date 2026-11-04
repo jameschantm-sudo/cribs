@@ -62,9 +62,11 @@ estate_info.py           Reference data for every estate (blocks, ages, district
 index_adjust.py          RVD price-index lookup and adjustment math
 affordability.py         Price-to-income tables (Census income, Housing Authority HOS data)
 app.py                   The Streamlit app — address lookup, inputs, prediction
-data/                    Raw and cleaned datasets, plus saved HTML snapshots for audit
-                         (data/ha_raw/, ~85MB of Housing Authority files, is git-ignored;
-                         re-download from data.housingauthority.gov.hk to rebuild the HOS table)
+data/                    Cleaned datasets, index and income tables. The raw 28hse pages and
+                         sale-by-sale transaction files are NOT included (28hse's terms restrict
+                         republishing; see METHODOLOGY.md, "Data source terms"). data/ha_raw/
+                         (~85MB of Housing Authority files) is git-ignored; re-download from
+                         data.housingauthority.gov.hk to rebuild the HOS table
 model.pkl                The trained, saved per-estate regression models
 ```
 

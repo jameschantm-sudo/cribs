@@ -258,6 +258,20 @@ Limits, plainly:
   naming, so only HOS rounds are included. Home Ownership Scheme resale records are published
   as a search page with no bulk download, so they are not included either.
 
+## Data source terms
+
+The sold-transaction data was collected from 28hse.com with a scraper (`collect_data.py`)
+before the site's Terms of Use had been read. Those terms restrict collecting, copying or
+aggregating the site's information, including transaction information, by automated means,
+and building an external database or tool from it. This is a real problem for the project,
+not a footnote. What has been done about it: the raw saved pages and the sale-by-sale
+transaction files were removed from this repository (they remain only on the author's own
+machine), and no new data is being collected from 28hse. What has not been resolved: the
+shipped models were still fitted on that data, and the cleaned sale-by-sale file the code
+reads is still in the repository. Written permission from 28hse, or a licensed replacement
+source, is the proper fix; until then the models should be read as a student portfolio
+prototype, not a product.
+
 ## Limitations, stated plainly
 
 - **Only four estates ship.** The address lookup can recognize any real Hong Kong address,

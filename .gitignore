@@ -5,3 +5,6 @@ __pycache__/
 data/ha_raw/
 data/centanet_raw/
 model_centanet.pkl
+data/raw_28hse/
+data/all_estates_transactions.csv
+data/city_one_shatin_transactions.csv
