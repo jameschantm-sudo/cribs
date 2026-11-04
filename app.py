@@ -7,20 +7,10 @@ from datetime import date
 
 import streamlit as st
 
-from estate_info import ESTATES, OBSERVED_RANGES, block_label, blocks_for, completion_year
+from estate_info import ESTATES, MODEL_MAE_HKD, OBSERVED_RANGES, block_label, blocks_for, completion_year
 
 MODEL_PATH = "model.pkl"
 ALS_URL = "https://www.als.gov.hk/lookup"
-
-# Each estate has its own model with its own real accuracy - from Phase 2's
-# per-estate cross-validation (see LEARNING_LOG.md). Reported per estate,
-# not as one shared number, since they genuinely differ a lot.
-MODEL_MAE_HKD = {
-    "city_one_shatin": 336_301,
-    "taikoo_shing": 752_514,
-    "mei_foo_sun_chuen": 573_863,
-    "dynasty_court": 7_851_391,
-}
 
 
 @st.cache_data

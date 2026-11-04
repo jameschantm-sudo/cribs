@@ -156,3 +156,14 @@ def block_label(estate_key, block):
 def completion_year(estate_key, block):
     phase = BLOCK_LOOKUP[estate_key][block][0]
     return ESTATES[estate_key]["phase_completion_year"][phase]
+
+
+# Each estate has its own model with its own real accuracy - from Phase 2's
+# per-estate cross-validation (see LEARNING_LOG.md). Reported per estate,
+# not as one shared number, since they genuinely differ a lot.
+MODEL_MAE_HKD = {
+    "city_one_shatin": 336_301,
+    "taikoo_shing": 752_514,
+    "mei_foo_sun_chuen": 573_863,
+    "dynasty_court": 7_851_391,
+}
