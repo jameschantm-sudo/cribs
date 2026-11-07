@@ -41,16 +41,14 @@ def load_hos_summary():
 
 @st.cache_data
 def typical_flat(estate_key):
-    """Median (area, floor) of the estate's cleaned sales, used as the form's starting point so
-    it opens on a flat that actually exists there. Falls back to the middle of the observed
-    range if the data file is missing."""
+    """Median (area, floor) of the estate's cleaned sales (data/estate_typical_flat.csv, written
+    by train_model.py), used as the form's starting point so it opens on a flat that actually
+    exists there. Falls back to the middle of the observed range if the file is missing."""
     try:
-        with open("data/all_estates_modeling_ready.csv", newline="") as f:
-            rows = [r for r in csv.DictReader(f) if r["estate"] == estate_key]
-        areas = sorted(float(r["saleable_area_sqft"]) for r in rows)
-        floors = sorted(float(r["floor"]) for r in rows)
-        return int(areas[len(areas) // 2]), int(floors[len(floors) // 2])
-    except (OSError, IndexError, KeyError, ValueError):
+        with open("data/estate_typical_flat.csv", newline="") as f:
+            row = next(r for r in csv.DictReader(f) if r["estate"] == estate_key)
+        return int(row["median_area_sqft"]), int(row["median_floor"])
+    except (OSError, StopIteration, KeyError, ValueError):
         area_lo, area_hi = OBSERVED_RANGES[estate_key]["area"]
         floor_lo, floor_hi = OBSERVED_RANGES[estate_key]["floor"]
         return (area_lo + area_hi) // 2, (floor_lo + floor_hi) // 2

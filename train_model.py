@@ -92,6 +92,13 @@ def train():
             continue
         models[estate_key] = train_one_estate(estate_key, group)
 
+    # Per-estate medians only (no individual sales), so the app can open on a typical flat
+    # without needing the sale-by-sale file, which is not published with the repository.
+    typical = (df[df["estate"].isin(models)].groupby("estate")
+               .agg(median_area_sqft=("saleable_area_sqft", "median"), median_floor=("floor", "median"),
+                    n_rows=("floor", "size")).round(0).astype(int))
+    typical.to_csv("data/estate_typical_flat.csv")
+
     with open(MODEL_PATH, "wb") as f:
         pickle.dump({"models": models, "features": FEATURES}, f)
     print(f"\nSaved {len(models)} per-estate models to {MODEL_PATH}")

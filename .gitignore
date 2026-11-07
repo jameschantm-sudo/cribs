@@ -8,3 +8,5 @@ model_centanet.pkl
 data/raw_28hse/
 data/all_estates_transactions.csv
 data/city_one_shatin_transactions.csv
+data/all_estates_modeling_ready.csv
+data/city_one_shatin_modeling_ready.csv
